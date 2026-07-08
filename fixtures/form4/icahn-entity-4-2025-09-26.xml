@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<ownershipDocument>
+
+    <schemaVersion>X0508</schemaVersion>
+
+    <documentType>4</documentType>
+
+    <periodOfReport>2025-09-24</periodOfReport>
+
+    <notSubjectToSection16>0</notSubjectToSection16>
+
+    <issuer>
+        <issuerCik>0000813762</issuerCik>
+        <issuerName>ICAHN ENTERPRISES L.P.</issuerName>
+        <issuerTradingSymbol>IEP</issuerTradingSymbol>
+    </issuer>
+
+    <reportingOwner>
+        <reportingOwnerId>
+            <rptOwnerCik>0000921669</rptOwnerCik>
+            <rptOwnerName>ICAHN CARL C</rptOwnerName>
+        </reportingOwnerId>
+        <reportingOwnerAddress>
+            <rptOwnerStreet1>C/O ICAHN ASSOCIATES HOLDING LLC</rptOwnerStreet1>
+            <rptOwnerStreet2>16690 COLLINS AVE., PH-1</rptOwnerStreet2>
+            <rptOwnerCity>SUNNY ISLES BEACH</rptOwnerCity>
+            <rptOwnerState>FL</rptOwnerState>
+            <rptOwnerZipCode>33160</rptOwnerZipCode>
+            <rptOwnerStateDescription></rptOwnerStateDescription>
+        </reportingOwnerAddress>
+        <reportingOwnerRelationship>
+            <isDirector>1</isDirector>
+            <isOfficer>0</isOfficer>
+            <isTenPercentOwner>1</isTenPercentOwner>
+            <isOther>1</isOther>
+            <officerTitle></officerTitle>
+            <otherText>CHAIRMAN OF THE BOARD</otherText>
+        </reportingOwnerRelationship>
+    </reportingOwner>
+
+    <aff10b5One>0</aff10b5One>
+
+    <nonDerivativeTable>
+        <nonDerivativeTransaction>
+            <securityTitle>
+                <value>Depositary Units</value>
+                <footnoteId id="F1"/>
+                <footnoteId id="F2"/>
+            </securityTitle>
+            <transactionDate>
+                <value>2025-09-24</value>
+                <footnoteId id="F3"/>
+            </transactionDate>
+            <deemedExecutionDate></deemedExecutionDate>
+            <transactionCoding>
+                <transactionFormType>4</transactionFormType>
+                <transactionCode>J</transactionCode>
+                <equitySwapInvolved>0</equitySwapInvolved>
+                <footnoteId id="F5"/>
+            </transactionCoding>
+            <transactionTimeliness></transactionTimeliness>
+            <transactionAmounts>
+                <transactionShares>
+                    <value>24149325</value>
+                </transactionShares>
+                <transactionPricePerShare>
+                    <value>8.1738</value>
+                    <footnoteId id="F4"/>
+                </transactionPricePerShare>
+                <transactionAcquiredDisposedCode>
+                    <value>A</value>
+                </transactionAcquiredDisposedCode>
+            </transactionAmounts>
+            <postTransactionAmounts>
+                <sharesOwnedFollowingTransaction>
+                    <value>518932944</value>
+                </sharesOwnedFollowingTransaction>
+            </postTransactionAmounts>
+            <ownershipNature>
+                <directOrIndirectOwnership>
+                    <value>I</value>
+                </directOrIndirectOwnership>
+                <natureOfOwnership>
+                    <value>Please see footnotes</value>
+                    <footnoteId id="F6"/>
+                    <footnoteId id="F7"/>
+                    <footnoteId id="F8"/>
+                    <footnoteId id="F9"/>
+                    <footnoteId id="F10"/>
+                    <footnoteId id="F11"/>
+                </natureOfOwnership>
+            </ownershipNature>
+        </nonDerivativeTransaction>
+    </nonDerivativeTable>
+
+    <footnotes>
+        <footnote id="F1">Depository Units representing limited partner interests in Icahn Enterprises L.P. (the &quot;Issuer&quot;).</footnote>
+        <footnote id="F2">Comprised of Depositary Units held indirectly through CCI Onshore LLC (&quot;CCI Onshore&quot;), Gascon Partners (&quot;Gascon&quot;), High Coast Limited Partnership (&quot;High Coast&quot;), Highcrest Investors LLC (&quot;Highcrest&quot;) and Thornwood Associates Limited Partnership (&quot;Thornwood&quot;).</footnote>
+        <footnote id="F3">Represents the date on which dividend amounts are determined based on the election of each holder and the volume weighted average trading price of units on NASDAQ during five consecutive trading days following the election date.</footnote>
+        <footnote id="F4">Represents the amount foregone in exchange for each Depository Unit received as a dividend.</footnote>
+        <footnote id="F5">The reporting person received 24,149,325 Depositary Units as a payment-in-kind dividend on 494,783,619 Depositary Units owned on the dividend record date in a transaction exempt from Section 16(b) liability pursuant to Rule 16(b)-3(d) promulgated under the Securities Exchange Act of 1934, as amended.</footnote>
+        <footnote id="F6">CCI Onshore beneficially owns 110,873,576 Depository Units. High Coast is the sole member of CCI Onshore. Little Meadow Corp. (&quot;Little Meadow&quot;) is the general partner of High Coast. Carl C. Icahn beneficially owns 100% of Little Meadow. Pursuant to Rule 16a-1(a)(2) under the Exchange Act, each of Mr. Icahn, Little Meadow and High Coast (by virtue of their relationships to CCI Onshore) may be deemed to indirectly beneficially own the Depository Units which CCI Onshore owns. Each of Mr. Icahn, Little Meadow and High Coast disclaims beneficial ownership of such Depository Units except to the extent of their pecuniary interest therein.</footnote>
+        <footnote id="F7">Gascon beneficially owns 71,332,451 Depository Units. Little Meadow is the managing general partner of Gascon. Carl C. Icahn beneficially owns 100% of Little Meadow. Pursuant to Rule 16a-1(a)(2) under the Exchange Act, each of Mr. Icahn and Little Meadow (by virtue of their relationships to Gascon) may be deemed to indirectly beneficially own the Depository Units which Gascon owns. Each of Mr. Icahn and Little Meadow disclaims beneficial ownership of such Depository Units except to the extent of their pecuniary interest therein.</footnote>
+        <footnote id="F8">High Coast beneficially owns 260,034,192 Depository Units. Little Meadow is the general partner of High Coast. Carl C. Icahn beneficially owns 100% of Little Meadow. Pursuant to Rule 16a-1(a)(2) under the Exchange Act, each of Mr. Icahn and Little Meadow (by virtue of their relationships to High Coast) may be deemed to indirectly beneficially own the Depository Units which High Coast owns. Each of Mr. Icahn and Little Meadow disclaims beneficial ownership of such Depository Units except to the extent of their pecuniary interest therein.</footnote>
+        <footnote id="F9">Highcrest beneficially owns 57,321,531 Depository Units. Starfire Holding Corporation (&quot;Starfire&quot;) beneficially owns 100% of Highcrest. Carl C. Icahn beneficially owns 100% of Starfire. Pursuant to Rule 16a-1(a)(2) under the Exchange Act, each of Mr. Icahn and Starfire (by virtue of their relationships to Highcrest) may be deemed to indirectly beneficially own the Depository Units which Highcrest owns. Each of Mr. Icahn and Starfire disclaims beneficial ownership of such Depository Units except to the extent of their pecuniary interest therein.</footnote>
+        <footnote id="F10">Thornwood beneficially owns 19,371,194 Depository Units. Barberry Corp. (&quot;Barberry&quot;) is the general partner of Thornwood. Carl C. Icahn beneficially owns 100% of Barberry. Pursuant to Rule 16a-1(a)(2) under the Exchange Act, each of Mr. Icahn and Barberry (by virtue of their relationships to Thornwood) may be deemed to indirectly beneficially own the Depository Units which Thornwood owns. Each of Mr. Icahn and Barberry disclaims beneficial ownership of such Depository Units except to the extent of their pecuniary interest therein.</footnote>
+        <footnote id="F11">Mr. Icahn may be deemed to indirectly beneficially own the 12,008 Depository Units owned by Gail Golden, his wife, which are not included in the total reported in column 5. Mr. Icahn disclaims beneficial ownership of such Depositary Units for all purposes.</footnote>
+    </footnotes>
+
+    <ownerSignature>
+        <signatureName>/s/ Carl C. Icahn</signatureName>
+        <signatureDate>2025-09-26</signatureDate>
+    </ownerSignature>
+</ownershipDocument>
