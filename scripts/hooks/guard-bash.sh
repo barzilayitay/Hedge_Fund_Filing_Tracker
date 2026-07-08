@@ -5,7 +5,18 @@
 set -uo pipefail
 
 INPUT=$(cat)
-CMD=$(echo "$INPUT" | python3 -c "import sys,json;print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null || echo "")
+PYTHON=""
+for candidate in python3 python; do
+  if "$candidate" -c "1" 2>/dev/null; then
+    PYTHON="$candidate"
+    break
+  fi
+done
+if [ -z "$PYTHON" ]; then
+  echo "guard-bash: no working python found, skipping guard"
+  exit 0
+fi
+CMD=$(echo "$INPUT" | "$PYTHON" -c "import sys,json;print(json.load(sys.stdin).get('tool_input',{}).get('command','').lower())" 2>/dev/null || echo "")
 
 BLOCKLIST=(
   "supabase db push"
@@ -14,11 +25,11 @@ BLOCKLIST=(
   "git push --force"
   "git push -f"
   "rm -rf /"
-  "DROP DATABASE"
+  "drop database"
 )
 
 for pattern in "${BLOCKLIST[@]}"; do
-  if echo "$CMD" | grep -qiF "$pattern"; then
+  if echo "$CMD" | grep -qF "$pattern"; then
     echo "BLOCKED by guard-bash hook: '$pattern' requires human execution (see CLAUDE.md hard rules)."
     exit 2
   fi

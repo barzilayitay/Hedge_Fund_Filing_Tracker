@@ -58,11 +58,26 @@ Statuses: NOT STARTED / IN PROGRESS / BLOCKED / AWAITING GATE / DONE
   window (fake timers, no network).
 - CI workflow created (will verify on PR).
 
-**PostToolUse hook verification:**
+**PostToolUse hook verification (`run-tests.sh`):**
 - Created a deliberately failing test (`expect(1+1).toBe(3)`).
 - The `run-tests.sh` hook fired on file write, detected the failure, and
   exited with code 2 (blocking feedback injected into Claude's context).
 - Fixed the test to pass; confirmed all checks green afterward.
+
+**PreToolUse hook verification (`guard-bash.sh`):**
+- Two Windows-specific bugs found and fixed:
+  1. `python3` on Windows resolves to a non-functional Microsoft Store
+     stub. Fixed: the hook now probes `python3` then `python` by running
+     `"$candidate" -c "1"` and using the first one that actually works.
+  2. `grep -qiF` (combining case-insensitive + fixed-string flags) causes
+     a SIGABRT crash in Git Bash's grep (known MSYS2 bug). Fixed: the
+     hook now lowercases the command via Python (`.lower()`) and uses
+     `grep -qF` (no `-i`) against a lowercased blocklist.
+- Verified on Windows:
+  - `echo hello` → exit 0 (allowed through).
+  - `supabase db push` → exit 2 (blocked).
+  - `git push --force origin main` → exit 2 (blocked).
+  - `DROP DATABASE production` → exit 2 (blocked, case-insensitive).
 
 ## Decisions
 
