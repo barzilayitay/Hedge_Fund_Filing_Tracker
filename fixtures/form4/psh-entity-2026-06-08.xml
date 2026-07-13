@@ -1,0 +1,326 @@
+<?xml version="1.0"?>
+<ownershipDocument>
+
+    <schemaVersion>X0609</schemaVersion>
+
+    <documentType>4</documentType>
+
+    <periodOfReport>2026-06-04</periodOfReport>
+
+    <issuer>
+        <issuerCik>0001981792</issuerCik>
+        <issuerName>Howard Hughes Holdings Inc.</issuerName>
+        <issuerTradingSymbol>HHH</issuerTradingSymbol>
+        <issuerForeignTradingSymbol></issuerForeignTradingSymbol>
+    </issuer>
+
+    <reportingOwner>
+        <reportingOwnerId>
+            <rptOwnerCik>0001336528</rptOwnerCik>
+            <rptOwnerName>Pershing Square Capital Management, L.P.</rptOwnerName>
+        </reportingOwnerId>
+        <reportingOwnerAddress>
+            <rptOwnerNonUSAddressFlag>false</rptOwnerNonUSAddressFlag>
+            <rptOwnerStreet1>787 ELEVENTH AVENUE</rptOwnerStreet1>
+            <rptOwnerStreet2>9TH FLOOR</rptOwnerStreet2>
+            <rptOwnerCity>NEW YORK</rptOwnerCity>
+            <rptOwnerState>NY</rptOwnerState>
+            <rptOwnerZipCode>10019</rptOwnerZipCode>
+            <rptOwnerStateDescription></rptOwnerStateDescription>
+        </reportingOwnerAddress>
+        <reportingOwnerRelationship>
+            <isDirector>true</isDirector>
+            <isTenPercentOwner>true</isTenPercentOwner>
+        </reportingOwnerRelationship>
+    </reportingOwner>
+
+    <reportingOwner>
+        <reportingOwnerId>
+            <rptOwnerCik>0002131683</rptOwnerCik>
+            <rptOwnerName>Pershing Square HHH Holdings, LLC</rptOwnerName>
+        </reportingOwnerId>
+        <reportingOwnerAddress>
+            <rptOwnerNonUSAddressFlag>false</rptOwnerNonUSAddressFlag>
+            <rptOwnerStreet1>787 ELEVENTH AVENUE</rptOwnerStreet1>
+            <rptOwnerStreet2>9TH FLOOR</rptOwnerStreet2>
+            <rptOwnerCity>NEW YORK</rptOwnerCity>
+            <rptOwnerState>NY</rptOwnerState>
+            <rptOwnerZipCode>10019</rptOwnerZipCode>
+            <rptOwnerStateDescription></rptOwnerStateDescription>
+        </reportingOwnerAddress>
+        <reportingOwnerRelationship>
+            <isDirector>true</isDirector>
+            <isTenPercentOwner>true</isTenPercentOwner>
+        </reportingOwnerRelationship>
+    </reportingOwner>
+
+    <reportingOwner>
+        <reportingOwnerId>
+            <rptOwnerCik>0002026053</rptOwnerCik>
+            <rptOwnerName>PERSHING SQUARE INC.</rptOwnerName>
+        </reportingOwnerId>
+        <reportingOwnerAddress>
+            <rptOwnerNonUSAddressFlag>false</rptOwnerNonUSAddressFlag>
+            <rptOwnerStreet1>787 ELEVENTH AVENUE</rptOwnerStreet1>
+            <rptOwnerStreet2>9TH FLOOR</rptOwnerStreet2>
+            <rptOwnerCity>NEW YORK</rptOwnerCity>
+            <rptOwnerState>NY</rptOwnerState>
+            <rptOwnerZipCode>10019</rptOwnerZipCode>
+            <rptOwnerStateDescription></rptOwnerStateDescription>
+        </reportingOwnerAddress>
+        <reportingOwnerRelationship>
+            <isDirector>true</isDirector>
+            <isTenPercentOwner>true</isTenPercentOwner>
+        </reportingOwnerRelationship>
+    </reportingOwner>
+
+    <reportingOwner>
+        <reportingOwnerId>
+            <rptOwnerCik>0002129159</rptOwnerCik>
+            <rptOwnerName>Pershing Square Partner Group LLC</rptOwnerName>
+        </reportingOwnerId>
+        <reportingOwnerAddress>
+            <rptOwnerNonUSAddressFlag>false</rptOwnerNonUSAddressFlag>
+            <rptOwnerStreet1>787 ELEVENTH AVENUE</rptOwnerStreet1>
+            <rptOwnerStreet2>9TH FLOOR</rptOwnerStreet2>
+            <rptOwnerCity>NEW YORK</rptOwnerCity>
+            <rptOwnerState>NY</rptOwnerState>
+            <rptOwnerZipCode>10019</rptOwnerZipCode>
+            <rptOwnerStateDescription></rptOwnerStateDescription>
+        </reportingOwnerAddress>
+        <reportingOwnerRelationship>
+            <isDirector>true</isDirector>
+            <isTenPercentOwner>true</isTenPercentOwner>
+        </reportingOwnerRelationship>
+    </reportingOwner>
+
+    <reportingOwner>
+        <reportingOwnerId>
+            <rptOwnerCik>0002027456</rptOwnerCik>
+            <rptOwnerName>Pershing Square Management, LLC</rptOwnerName>
+        </reportingOwnerId>
+        <reportingOwnerAddress>
+            <rptOwnerNonUSAddressFlag>false</rptOwnerNonUSAddressFlag>
+            <rptOwnerStreet1>787 ELEVENTH AVENUE</rptOwnerStreet1>
+            <rptOwnerStreet2>9TH FLOOR</rptOwnerStreet2>
+            <rptOwnerCity>NEW YORK</rptOwnerCity>
+            <rptOwnerState>NY</rptOwnerState>
+            <rptOwnerZipCode>10019</rptOwnerZipCode>
+            <rptOwnerStateDescription></rptOwnerStateDescription>
+        </reportingOwnerAddress>
+        <reportingOwnerRelationship>
+            <isDirector>true</isDirector>
+            <isTenPercentOwner>true</isTenPercentOwner>
+        </reportingOwnerRelationship>
+    </reportingOwner>
+
+    <reportingOwner>
+        <reportingOwnerId>
+            <rptOwnerCik>0001056513</rptOwnerCik>
+            <rptOwnerName>ACKMAN WILLIAM A</rptOwnerName>
+        </reportingOwnerId>
+        <reportingOwnerAddress>
+            <rptOwnerNonUSAddressFlag>false</rptOwnerNonUSAddressFlag>
+            <rptOwnerStreet1>787 ELEVENTH AVENUE</rptOwnerStreet1>
+            <rptOwnerStreet2>9TH FLOOR</rptOwnerStreet2>
+            <rptOwnerCity>NEW YORK</rptOwnerCity>
+            <rptOwnerState>NY</rptOwnerState>
+            <rptOwnerZipCode>10019</rptOwnerZipCode>
+            <rptOwnerStateDescription></rptOwnerStateDescription>
+        </reportingOwnerAddress>
+        <reportingOwnerRelationship>
+            <isDirector>true</isDirector>
+            <isTenPercentOwner>true</isTenPercentOwner>
+        </reportingOwnerRelationship>
+    </reportingOwner>
+
+    <aff10b5One>false</aff10b5One>
+
+    <nonDerivativeTable>
+        <nonDerivativeTransaction>
+            <securityTitle>
+                <value>Series A Non-Voting Exchangeable Perpetual Preferred Stock</value>
+            </securityTitle>
+            <transactionDate>
+                <value>2026-06-04</value>
+            </transactionDate>
+            <transactionCoding>
+                <transactionFormType>4</transactionFormType>
+                <transactionCode>A</transactionCode>
+                <equitySwapInvolved>0</equitySwapInvolved>
+                <footnoteId id="F3"/>
+            </transactionCoding>
+            <transactionAmounts>
+                <transactionShares>
+                    <value>140000</value>
+                </transactionShares>
+                <transactionPricePerShare>
+                    <value>7142.8571</value>
+                    <footnoteId id="F3"/>
+                </transactionPricePerShare>
+                <transactionAcquiredDisposedCode>
+                    <value>A</value>
+                </transactionAcquiredDisposedCode>
+            </transactionAmounts>
+            <postTransactionAmounts>
+                <sharesOwnedFollowingTransaction>
+                    <value>140000</value>
+                </sharesOwnedFollowingTransaction>
+            </postTransactionAmounts>
+            <ownershipNature>
+                <directOrIndirectOwnership>
+                    <value>I</value>
+                </directOrIndirectOwnership>
+                <natureOfOwnership>
+                    <value>See footnotes</value>
+                    <footnoteId id="F1"/>
+                    <footnoteId id="F2"/>
+                    <footnoteId id="F4"/>
+                </natureOfOwnership>
+            </ownershipNature>
+        </nonDerivativeTransaction>
+        <nonDerivativeHolding>
+            <securityTitle>
+                <value>Common Stock, par value $0.01 per share</value>
+            </securityTitle>
+            <postTransactionAmounts>
+                <sharesOwnedFollowingTransaction>
+                    <value>18511031</value>
+                </sharesOwnedFollowingTransaction>
+            </postTransactionAmounts>
+            <ownershipNature>
+                <directOrIndirectOwnership>
+                    <value>I</value>
+                </directOrIndirectOwnership>
+                <natureOfOwnership>
+                    <value>See footnotes</value>
+                    <footnoteId id="F1"/>
+                    <footnoteId id="F2"/>
+                    <footnoteId id="F5"/>
+                    <footnoteId id="F8"/>
+                    <footnoteId id="F9"/>
+                    <footnoteId id="F10"/>
+                    <footnoteId id="F12"/>
+                </natureOfOwnership>
+            </ownershipNature>
+        </nonDerivativeHolding>
+        <nonDerivativeHolding>
+            <securityTitle>
+                <value>Common Stock, par value $0.01 per share</value>
+            </securityTitle>
+            <postTransactionAmounts>
+                <sharesOwnedFollowingTransaction>
+                    <value>341033</value>
+                </sharesOwnedFollowingTransaction>
+            </postTransactionAmounts>
+            <ownershipNature>
+                <directOrIndirectOwnership>
+                    <value>I</value>
+                </directOrIndirectOwnership>
+                <natureOfOwnership>
+                    <value>See footnotes</value>
+                    <footnoteId id="F1"/>
+                    <footnoteId id="F2"/>
+                    <footnoteId id="F6"/>
+                    <footnoteId id="F8"/>
+                    <footnoteId id="F9"/>
+                    <footnoteId id="F10"/>
+                    <footnoteId id="F12"/>
+                </natureOfOwnership>
+            </ownershipNature>
+        </nonDerivativeHolding>
+        <nonDerivativeHolding>
+            <securityTitle>
+                <value>Common Stock, par value $0.01 per share</value>
+            </securityTitle>
+            <postTransactionAmounts>
+                <sharesOwnedFollowingTransaction>
+                    <value>9000000</value>
+                </sharesOwnedFollowingTransaction>
+            </postTransactionAmounts>
+            <ownershipNature>
+                <directOrIndirectOwnership>
+                    <value>I</value>
+                </directOrIndirectOwnership>
+                <natureOfOwnership>
+                    <value>See footnotes</value>
+                    <footnoteId id="F1"/>
+                    <footnoteId id="F7"/>
+                    <footnoteId id="F8"/>
+                    <footnoteId id="F9"/>
+                    <footnoteId id="F10"/>
+                    <footnoteId id="F12"/>
+                </natureOfOwnership>
+            </ownershipNature>
+        </nonDerivativeHolding>
+        <nonDerivativeHolding>
+            <securityTitle>
+                <value>Common Stock, par value $0.01 per share</value>
+            </securityTitle>
+            <postTransactionAmounts>
+                <sharesOwnedFollowingTransaction>
+                    <value>59393938</value>
+                </sharesOwnedFollowingTransaction>
+            </postTransactionAmounts>
+            <ownershipNature>
+                <directOrIndirectOwnership>
+                    <value>I</value>
+                </directOrIndirectOwnership>
+                <natureOfOwnership>
+                    <value>See footnotes</value>
+                    <footnoteId id="F1"/>
+                    <footnoteId id="F8"/>
+                    <footnoteId id="F9"/>
+                    <footnoteId id="F10"/>
+                    <footnoteId id="F11"/>
+                    <footnoteId id="F12"/>
+                </natureOfOwnership>
+            </ownershipNature>
+        </nonDerivativeHolding>
+    </nonDerivativeTable>
+
+    <footnotes>
+        <footnote id="F1">In addition to Pershing Square Capital Management, L.P., a Delaware limited partnership (&quot;PSCM&quot;), this Form 4 is being filed jointly by Pershing Square HHH Holdings, LLC, a Nevada limited liability company (&quot;HHH Holdings&quot;), Pershing Square Inc., a Nevada corporation (&quot;PS Inc.&quot;), Pershing Square Management, LLC, a Delaware limited liability company (&quot;ManagementCo&quot;), Pershing Square Partner Group, LLC, a Delaware limited liability company (&quot;PSPG&quot;), and William A. Ackman, a citizen of the United States of America (collectively, the &quot;Reporting Persons&quot;), each of whom has the same business address as PSCM and may be deemed to beneficially own the securities of the Issuer reported on this Form 4 (the &quot;Subject Securities&quot;).</footnote>
+        <footnote id="F2">PSCM advises the accounts of Pershing Square, L.P., a Delaware limited partnership (&quot;PSLP&quot;), Pershing Square International, Ltd., a Cayman Islands exempted company (&quot;PSI&quot;), and Pershing Square Holdings, Ltd., a limited liability company incorporated in Guernsey (&quot;PSH&quot; and together with PSLP and PSI, the &quot;Pershing Square Affiliated Funds&quot;) and PS Redemption, L.P., a Delaware limited partnership (&quot;RedemptionCo&quot;).</footnote>
+        <footnote id="F3">In connection with the completion of the acquisition of Vantage Group Holdings Ltd. by the Issuer on June 4, 2026, PSH acquired 140,000 shares of the Issuer's Series A Non-Voting Exchangeable Perpetual Preferred Stock, par value $0.01 per share, for an aggregate purchase price of approximately $1.0 billion, pursuant to the Subscription Agreement, dated as of June 4, 2026, by and between Howard Hughes Insurance Holdings, LLC, PSH and the Issuer, as described in greater detail in the Issuer's Form 8-K filed on June 5, 2026.</footnote>
+        <footnote id="F4">These Subject Securities are held by PSH through its wholly-owned subsidiaries.</footnote>
+        <footnote id="F5">These Subject Securities are held by the Pershing Square Affiliated Funds.</footnote>
+        <footnote id="F6">These Subject Securities are held by RedemptionCo.</footnote>
+        <footnote id="F7">These Subject Securities are held by HHH Holdings.</footnote>
+        <footnote id="F8">ManagementCo holds majority voting power over PS Inc. (including in its capacity as the managing member of PSPG). PS Inc. is the indirect parent company, and PSCM is the direct parent company, of HHH Holdings. ManagementCo, PSPG, PS Inc. and PSCM may each be deemed to be the beneficial owner of the Subject Securities for purposes of Rule 16a-1(a) under the Securities Exchange Act of 1934, as amended (the &quot;Exchange Act&quot;)</footnote>
+        <footnote id="F9">(Continued from Footnote 8) ManagementCo is governed by its members, consisting of Mr. Ackman, Ryan Israel, Ben Hakim, Michael Gonnella, Anthony Massaro and Halit Coussin (collectively, the &quot;ManagementCo Members&quot;). Mr. Ackman owns 24.9% of the voting interests of ManagementCo, with Mr. Israel, Mr. Hakim, Mr. Gonnella, Mr. Massaro and Ms. Coussin each owning the remainder of the voting interests equally (approximately 15% each), and the approval of a majority of the voting interests is generally required to approve any action of ManagementCo.</footnote>
+        <footnote id="F10">(Continued from Footnote 9) By virtue of Mr. Ackman's position as, among other positions, the Chief Executive Officer of PSCM, Mr. Ackman may be deemed to be the beneficial owner of the Subject Securities for purposes of Rule 16a-1(a) under the Exchange Act. Each of the Reporting Persons and the ManagementCo Members disclaims any beneficial ownership of any of the Subject Securities, except to the extent of any pecuniary interest therein.</footnote>
+        <footnote id="F11">These Subject Securities are not held by the Reporting Persons. However, pursuant to a Services Agreement, dated May 5, 2025, by and between PSCM and the Issuer, PSCM is entitled to a fee for services determined in part by reference to the increase, if any, in the price of a number of shares of Common Stock of the Issuer (the &quot;Reference Securities&quot;) above $66.1453 per share, as described in greater detail in the Issuer's Form 8-K filed on May 6, 2025. Pursuant to Rule 16a-1(a) under the Exchange Act, PSCM's interest under the Services Agreement may be deemed to be a performance-related fee with respect to, and therefore beneficial ownership of, the Reference Securities. As of the date of this Form 4, the number of Reference Securities is 59,393,938. As with the other Subject Securities, each of the Reporting Persons disclaims any beneficial ownership of the Reference Securities, except to the extent of any pecuniary interest therein.</footnote>
+        <footnote id="F12">Mr. Ackman and Mr. Israel, each a member of the board of directors of the Issuer, were appointed to or elected to that board as representatives of the Reporting Persons, the Pershing Square Affiliated Funds and RedemptionCo. As a result, each of those persons is a director by deputization for purposes of Section 16 of the Exchange Act.</footnote>
+    </footnotes>
+
+    <ownerSignature>
+        <signatureName>PERSHING SQUARE CAPITAL MANAGEMENT, L.P., By: /s/ William A. Ackman, Authorized Signatory</signatureName>
+        <signatureDate>2026-06-08</signatureDate>
+    </ownerSignature>
+
+    <ownerSignature>
+        <signatureName>PERSHING SQUARE HHH HOLDINGS, LLC, By: /s/ William A. Ackman, Authorized Signatory</signatureName>
+        <signatureDate>2026-06-08</signatureDate>
+    </ownerSignature>
+
+    <ownerSignature>
+        <signatureName>PERSHING SQUARE INC., By: /s/ William A. Ackman, Chief Executive Officer and Chairman of the Board</signatureName>
+        <signatureDate>2026-06-08</signatureDate>
+    </ownerSignature>
+
+    <ownerSignature>
+        <signatureName>PERSHING SQUARE PARTNER GROUP, LLC, By: PERSHING SQUARE MANAGEMENT, LLC, its Managing Member, By: /s/ William A. Ackman, Member and Chief Executive Officer</signatureName>
+        <signatureDate>2026-06-08</signatureDate>
+    </ownerSignature>
+
+    <ownerSignature>
+        <signatureName>PERSHING SQUARE MANAGEMENT, LLC, By: /s/ William A. Ackman, Member and Chief Executive Officer</signatureName>
+        <signatureDate>2026-06-08</signatureDate>
+    </ownerSignature>
+
+    <ownerSignature>
+        <signatureName>/s/ William A. Ackman</signatureName>
+        <signatureDate>2026-06-08</signatureDate>
+    </ownerSignature>
+</ownershipDocument>
