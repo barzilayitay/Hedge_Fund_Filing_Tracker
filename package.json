@@ -11,14 +11,19 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "fixtures": "tsx scripts/fetch-fixtures.ts"
+    "fixtures": "tsx scripts/fetch-fixtures.ts",
+    "fixtures:13f": "tsx scripts/fetch-13f-fixtures.ts",
+    "fixtures:expected": "tsx scripts/build-expected.ts"
   },
   "dependencies": {
+    "fast-xml-parser": "^5.10.1",
     "next": "16.2.10",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.4",
     "@playwright/test": "^1.52.0",
     "@types/node": "^20",
     "@types/react": "^19",

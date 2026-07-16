@@ -1,0 +1,123 @@
+[
+  {
+    "label": "appaloosa-2026-05-15",
+    "cik": "1656456",
+    "accession": "0001656456-26-000002",
+    "formType": "13F-HR",
+    "filedAt": "2026-05-15",
+    "periodOfReport": "2026-03-31",
+    "coverPage": "appaloosa-2026-05-15.cover.xml",
+    "informationTable": "appaloosa-2026-05-15.xml",
+    "note": "Appaloosa Management, small filer (31 positions)"
+  },
+  {
+    "label": "brk-2026-02-17",
+    "cik": "1067983",
+    "accession": "0001193125-26-054580",
+    "formType": "13F-HR",
+    "filedAt": "2026-02-17",
+    "periodOfReport": "2025-12-31",
+    "coverPage": "brk-2026-02-17.cover.xml",
+    "informationTable": "brk-2026-02-17.xml",
+    "note": "Berkshire Hathaway, quarter 1 of 2 consecutive quarters"
+  },
+  {
+    "label": "brk-2026-05-15",
+    "cik": "1067983",
+    "accession": "0001193125-26-226661",
+    "formType": "13F-HR",
+    "filedAt": "2026-05-15",
+    "periodOfReport": "2026-03-31",
+    "coverPage": "brk-2026-05-15.cover.xml",
+    "informationTable": "brk-2026-05-15.xml",
+    "note": "Berkshire Hathaway, quarter 2 of 2 consecutive quarters"
+  },
+  {
+    "label": "brk-newholdings-amendment-2024-05-15",
+    "cik": "1067983",
+    "accession": "0000950123-24-005664",
+    "formType": "13F-HR/A",
+    "filedAt": "2024-05-15",
+    "periodOfReport": "2023-12-31",
+    "coverPage": "brk-newholdings-amendment-2024-05-15.cover.xml",
+    "informationTable": "brk-newholdings-amendment-2024-05-15.xml",
+    "note": "NEW HOLDINGS pair, /A. Adds 1 previously confidential holding"
+  },
+  {
+    "label": "brk-newholdings-original-2024-02-14",
+    "cik": "1067983",
+    "accession": "0000950123-24-002518",
+    "formType": "13F-HR",
+    "filedAt": "2024-02-14",
+    "periodOfReport": "2023-12-31",
+    "coverPage": "brk-newholdings-original-2024-02-14.cover.xml",
+    "informationTable": "brk-newholdings-original-2024-02-14.xml",
+    "note": "NEW HOLDINGS pair, original. period 2023-12-31"
+  },
+  {
+    "label": "brk-newholdings-q1-2025-amendment-2025-08-14",
+    "cik": "1067983",
+    "accession": "0000950123-25-008361",
+    "formType": "13F-HR/A",
+    "filedAt": "2025-08-14",
+    "periodOfReport": "2025-03-31",
+    "coverPage": "brk-newholdings-q1-2025-amendment-2025-08-14.cover.xml",
+    "informationTable": "brk-newholdings-q1-2025-amendment-2025-08-14.xml",
+    "note": "Second NEW HOLDINGS pair, /A. Adds 4 previously confidential holdings"
+  },
+  {
+    "label": "brk-newholdings-q1-2025-original-2025-05-15",
+    "cik": "1067983",
+    "accession": "0000950123-25-005701",
+    "formType": "13F-HR",
+    "filedAt": "2025-05-15",
+    "periodOfReport": "2025-03-31",
+    "coverPage": "brk-newholdings-q1-2025-original-2025-05-15.cover.xml",
+    "informationTable": "brk-newholdings-q1-2025-original-2025-05-15.xml",
+    "note": "Second NEW HOLDINGS pair, original. period 2025-03-31. Phase 0 named this 'restatement-*'; the /A is in fact amendmentType NEW HOLDINGS."
+  },
+  {
+    "label": "brk-pre2023-2022-11-14",
+    "cik": "1067983",
+    "accession": "0000950123-22-012275",
+    "formType": "13F-HR",
+    "filedAt": "2022-11-14",
+    "periodOfReport": "2022-09-30",
+    "coverPage": "brk-pre2023-2022-11-14.cover.xml",
+    "informationTable": "brk-pre2023-2022-11-14.xml",
+    "note": "period 2022-09-30: values in $ thousands, proves unit conversion"
+  },
+  {
+    "label": "gfi-restatement-amendment-2025-06-10",
+    "cik": "1688774",
+    "accession": "0001688774-25-000011",
+    "formType": "13F-HR/A",
+    "filedAt": "2025-06-10",
+    "periodOfReport": "2024-12-31",
+    "coverPage": "gfi-restatement-amendment-2025-06-10.cover.xml",
+    "informationTable": "gfi-restatement-amendment-2025-06-10.xml",
+    "note": "RESTATEMENT pair, /A. Restates the original's values from $ thousands to whole dollars, so the /A total (871,072,606) differs ~1000x from the original — supersession is unambiguous."
+  },
+  {
+    "label": "gfi-restatement-original-2025-02-12",
+    "cik": "1688774",
+    "accession": "0001688774-25-000001",
+    "formType": "13F-HR",
+    "filedAt": "2025-02-12",
+    "periodOfReport": "2024-12-31",
+    "coverPage": "gfi-restatement-original-2025-02-12.cover.xml",
+    "informationTable": "gfi-restatement-original-2025-02-12.xml",
+    "note": "RESTATEMENT pair, original. period 2024-12-31, total 871,073"
+  },
+  {
+    "label": "psh-2026-05-15",
+    "cik": "1336528",
+    "accession": "0001172661-26-002336",
+    "formType": "13F-HR",
+    "filedAt": "2026-05-15",
+    "periodOfReport": "2026-03-31",
+    "coverPage": "psh-2026-05-15.cover.xml",
+    "informationTable": "psh-2026-05-15.xml",
+    "note": "Pershing Square, single quarter"
+  }
+]

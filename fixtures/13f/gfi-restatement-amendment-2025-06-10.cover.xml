@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edgarSubmission xmlns="http://www.sec.gov/edgar/thirteenffiler" xmlns:com="http://www.sec.gov/edgar/common">
+  <schemaVersion>X0202</schemaVersion>
+  <headerData>
+    <submissionType>13F-HR/A</submissionType>
+    <filerInfo>
+      <liveTestFlag>LIVE</liveTestFlag>
+      <flags>
+        <confirmingCopyFlag>false</confirmingCopyFlag>
+        <returnCopyFlag>true</returnCopyFlag>
+        <overrideInternetFlag>false</overrideInternetFlag>
+      </flags>
+      <filer>
+        <credentials>
+          <cik>0001688774</cik>
+          <ccc>XXXXXXXX</ccc>
+        </credentials>
+      </filer>
+      <periodOfReport>12-31-2024</periodOfReport>
+    </filerInfo>
+  </headerData>
+  <formData>
+    <coverPage>
+      <reportCalendarOrQuarter>12-31-2024</reportCalendarOrQuarter>
+      <isAmendment>true</isAmendment>
+      <amendmentNo>1</amendmentNo>
+      <amendmentInfo>
+        <amendmentType>RESTATEMENT</amendmentType>
+      </amendmentInfo>
+      <filingManager>
+        <name>GFI Investment Counsel Ltd.</name>
+        <address>
+          <com:street1>45 ST. CLAIR AVENUE WEST</com:street1>
+          <com:street2>SUITE 1000</com:street2>
+          <com:city>TORONTO</com:city>
+          <com:stateOrCountry>A6</com:stateOrCountry>
+          <com:zipCode>M4V 1K9</com:zipCode>
+        </address>
+      </filingManager>
+      <reportType>13F HOLDINGS REPORT</reportType>
+      <form13FFileNumber>028-17681</form13FFileNumber>
+      <crdNumber>000332720</crdNumber>
+      <secFileNumber>801-131626</secFileNumber>
+      <provideInfoForInstruction5>Y</provideInfoForInstruction5>
+      <additionalInformation>Restatement of the value for all holdings rounded to the nearest dollar, rather than to the nearest one thousand dollars.</additionalInformation>
+    </coverPage>
+    <signatureBlock>
+      <name>Daniel Goodman</name>
+      <title>CEO</title>
+      <phone>416 488 8825</phone>
+      <signature>DANIEL GOODMAN</signature>
+      <city>Toronto</city>
+      <stateOrCountry>A6</stateOrCountry>
+      <signatureDate>06-05-2025</signatureDate>
+    </signatureBlock>
+    <summaryPage>
+      <otherIncludedManagersCount>0</otherIncludedManagersCount>
+      <tableEntryTotal>20</tableEntryTotal>
+      <tableValueTotal>871072606</tableValueTotal>
+      <isConfidentialOmitted>false</isConfidentialOmitted>
+    </summaryPage>
+  </formData>
+</edgarSubmission>
