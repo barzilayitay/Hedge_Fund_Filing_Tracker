@@ -294,8 +294,13 @@ semantics under test are the same SQL that ships to Supabase.
    Phase 1:** they did not. Both Berkshire /A fixtures are NEW HOLDINGS; the
    pair named `brk-restatement-*` was misnamed and has been renamed, and a real
    RESTATEMENT pair was added (Decision 2).
-2. The CI workflow is committed but hasn't been tested on a real PR yet;
-   it will be verified when the phase-0 PR is opened.
+2. ~~The CI workflow is committed but hasn't been tested on a real PR yet.~~
+   **Verified on the phase-1 PR (#2):** the `check` job (install, typecheck,
+   lint, test, build) passes on ubuntu-latest in ~45s, and the `e2e` job
+   correctly skips without the `e2e` label. This also confirms the PGlite-based
+   acceptance tests run in CI on Linux with no Docker. Note it only went green
+   because this PR fixes the `app/globals.css` Tailwind import that was
+   breaking `npm run build` on `main`.
 
 ## Known issues / debt
 
