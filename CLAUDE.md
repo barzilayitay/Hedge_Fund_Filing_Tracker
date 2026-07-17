@@ -30,8 +30,10 @@ npm run typecheck    # tsc --noEmit
 npm run lint         # eslint
 npm run e2e          # playwright (requires dev server or preview build)
 npm run fixtures     # download/refresh EDGAR fixtures (network required; rarely run)
-supabase migration new <name>   # create migration
-supabase db reset               # rebuild local db from migrations + seed
+npm run fixtures:13f # refresh 13F fixture docs + SEC reference data (network)
+npm run fixtures:expected  # regenerate fixtures/13f/*.expected.json (offline)
+npx supabase migration new <name>   # create migration
+npx supabase db reset               # rebuild local db from migrations + seed
 ```
 
 ## Hard rules (never violate)
@@ -52,6 +54,9 @@ supabase db reset               # rebuild local db from migrations + seed
    current phase explicitly says so (Phase 7 only).
 5. **No secrets in code or commits.** Secrets live in `.env` (gitignored)
    and platform secret stores. `.env.example` documents required keys.
+   Real credentials go **only** in `.env` — never in `.env.example`, which is
+   committed and must contain placeholders only. Before committing any env
+   file, run `git diff` on it and read the actual values.
 6. **Idempotent ingestion.** Every ingest path must be safe to re-run:
    upsert keyed on SEC accession number, never blind insert.
 7. **Amendments are handled explicitly** (see `specs/phase-1`); never
@@ -74,6 +79,36 @@ supabase db reset               # rebuild local db from migrations + seed
 7. Stop after the current phase. Do not start the next phase in the same
    session, even if it seems easy.
 
+## Windows environment
+
+This project is developed on Windows. The following are not preferences —
+they are the only ways these commands work here.
+
+**Local Supabase must exclude the services that fail health checks on
+Windows** (studio, storage-api and postgres-meta):
+
+```
+npx supabase start -x studio,storage-api,postgres-meta,imgproxy,logflare,vector,mailpit
+```
+
+**The Supabase CLI is a local project dependency, not a global binary.**
+Always use the `npx` prefix: `npx supabase migration new`, `npx supabase db
+reset`. A bare `supabase ...` will not resolve.
+
+**Docker read-only or "image corrupted" errors:** fully restart Docker
+Desktop, open a fresh terminal, then `docker rmi` and re-pull any image that
+fails with a missing-binary error. Restarting the terminal alone is not
+enough.
+
+**Line endings** are settled by `.gitattributes` (everything is LF, in the
+repo and the working tree). Never commit a diff that is only CRLF/LF churn —
+if one appears, fix the attributes rather than staging the noise.
+
+**The test suite needs no Docker.** The Phase 1 acceptance tests run the real
+migrations against an embedded Postgres (PGlite), so `npm run test` works
+with Docker stopped. Docker is only needed for `npx supabase start` / `db
+reset`.
+
 ## When the spec is ambiguous
 
 Prefer the interpretation that is (a) simplest, (b) consistent with
@@ -87,12 +122,17 @@ production, spending money).
 ```
 app/                  # Next.js routes (app router)
 components/           # React components
+lib/db/               # SQL port used by the loaders
 lib/edgar/            # EDGAR client, parsers (13F, Form 4), index poller
 lib/analytics/        # diff/summary computation helpers (SQL lives in migrations)
 supabase/migrations/  # all DDL, in order
 supabase/functions/   # edge functions (poller, alerts)
-fixtures/13f/         # committed real 13F filings + expected-output JSON
+fixtures/13f/         # committed real 13F filings + expected-output JSON.
+                      #   <label>.xml = information table
+                      #   <label>.cover.xml = cover page (primary_doc.xml)
+                      #   manifest.json = accession + filed_at per fixture
 fixtures/form4/       # committed real Form 4 XML + expected-output JSON
+fixtures/reference/   # SEC reference data (company_tickers.json, 13(f) list)
 tests/                # vitest suites, one file per spec section
 e2e/                  # playwright specs
 specs/                # phase specs — the source of truth for scope

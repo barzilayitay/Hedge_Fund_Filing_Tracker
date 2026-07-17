@@ -56,3 +56,55 @@ Phase 1 complete (Berkshire two-quarter fixtures loaded by test setup).
 
 ## Out of scope
 Live price feeds, backfills, API surface, UI.
+
+## AMENDMENT (post-Phase-1 gate review) — holdings_13f row semantics
+
+Phase 1 changed the holdings_13f primary key from the original
+(accession_no, cusip, put_call, share_class) to (accession_no, row_index).
+Rationale: 13F information tables legitimately contain multiple rows for the
+same security within one filing (one row per otherManager combination —
+Berkshire reports its Apple position as 12 rows; 60% of fixture rows collapse
+under the old PK). Raw rows are preserved exactly as filed and are NEVER
+collapsed at ingest.
+
+Consequences that are BINDING for Phase 2:
+
+1. holdings_13f is a row-level table, not a position-level table. There is no
+   one-row-per-security guarantee. Any computation of position size, quarter-
+   over-quarter change, portfolio weight, top holdings, new/exited positions,
+   or filer overlap MUST first aggregate rows within a filing:
+
+       GROUP BY filer, period, cusip, put_call, share_class
+       SUM(value_usd), SUM(shares/principal amount),
+       SUM(voting authority sole/shared/none)
+
+   put_call must never be merged with equity rows for the same CUSIP; a put,
+   a call, and a share position in the same issuer are three distinct
+   positions.
+
+2. Implement this aggregation ONCE as a SQL view named holdings_13f_agg
+   (built on top of the amendment-effective filing set, i.e. exclude
+   superseded filings). All Phase 2 analytics read from this view. No Phase 2
+   query may GROUP BY over raw holdings_13f directly.
+
+3. Aggregation operates on effective filings only: RESTATEMENT amendments
+   supersede all prior filings for the period; NEW HOLDINGS amendments union
+   with the original (per Phase 1 reconciliation rules).
+
+4. row_index identity is only stable because the Phase 1 loader deletes and
+   reloads all rows for an accession atomically on re-ingest. Phase 2 (and all
+   later phases) MUST preserve this replace-per-accession behavior; row-level
+   upserts against holdings_13f are prohibited.
+
+5. The PK no longer leads on cusip. Phase 2's migration must add a secondary
+   index supporting per-security lookups (at minimum: cusip; recommended:
+   (cusip, accession_no)) unless it already exists.
+
+Known limitations inherited from Phase 1 (do not rediscover):
+- securities seed comes from the SEC Official 13(f) Securities List pinned at
+  2026q1; the securities↔companies link is a normalized-name join and is
+  lower-confidence than OpenFIGI resolutions. A list-refresh policy is
+  deferred (target: Phase 7 ops hardening).
+- createOpenFigiClient has never been exercised against the live API; only
+  ~34% of fixture CUSIPs resolve from the seed alone. First live invocation
+  must be supervised.

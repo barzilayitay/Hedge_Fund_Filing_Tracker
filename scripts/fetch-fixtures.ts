@@ -13,7 +13,7 @@ const SUBMISSIONS_BASE = "https://data.sec.gov/submissions";
 
 const USER_AGENT =
   process.env.EDGAR_USER_AGENT ??
-  "HedgeFundFilingTracker barzilay.itay@gmail.com";
+  "HedgeFundFilingTracker your-email@example.com";
 
 const RATE_LIMIT_MS = 125; // 8 req/s
 

@@ -60,3 +60,37 @@ Phase 0 complete. Work only against fixtures; no live EDGAR calls in tests.
 
 ## Out of scope
 Prices, % of portfolio, diffs (Phase 2). Form 4 (Phase 3). Any UI or API.
+
+## As-built notes (post-Phase-1 gate review)
+
+The following clarifications reflect the shipped implementation. See
+`PROGRESS.md` "Decisions" for the full rationale on each.
+
+- **`holdings_13f` primary key is `(accession_no, row_index)`**, not
+  `(accession_no, cusip, put_call, share_class)`. The original PK collapsed
+  60% of fixture rows because 13F information tables legitimately contain
+  multiple rows for the same security within one filing (one row per
+  `otherManager` combination — Berkshire reports Apple as 12 rows in one
+  filing). `row_index` is the row's position in the information table.
+  **Row identity is load-bearing on the loader's replace-per-accession
+  behavior** (`load13f.ts` upserts all rows for an accession in one statement
+  and then deletes any rows left over from a prior parse). Row-level upserts
+  against `holdings_13f` are prohibited in every downstream phase.
+  See Phase 2's AMENDMENT section for the mandatory `holdings_13f_agg`
+  aggregation view built on top of this table.
+
+- **Seed sources for the reference tables:**
+  - `companies` is seeded from `fixtures/reference/company_tickers.json`
+    (SEC ticker map, CIK → ticker + name; contains no CUSIPs).
+  - `securities` is seeded from the **SEC Official List of Section 13(f)
+    Securities** (`fixtures/reference/13flist2026q1.txt`, pinned at 2026q1),
+    joined to `company_tickers.json` on normalized issuer name.
+    `company_tickers.json` cannot seed `securities` directly because it
+    contains no CUSIPs and `securities` is keyed on CUSIP.
+
+- **`parse13f` signature is `(coverXml, infoTableXml, ref)`** where
+  `ref: { accessionNo, filedAt }` is EDGAR submission metadata supplied by
+  the caller. Neither the accession number nor the filing date appears
+  anywhere in the filing's XML documents — they live only in the SEC
+  submissions feed (`data.sec.gov/submissions/CIK{10-digit}.json`), so the
+  poller (or fixture manifest in tests) is the source of truth for them.

@@ -1,0 +1,28 @@
+# Line endings.
+#
+# This repo is developed on Windows, where git's core.autocrlf=true checks
+# files out as CRLF while storing them as LF. That is invisible until a tool
+# writes a file directly (the fixture downloaders, prettier) and git then
+# reports a whole tree as modified over line endings alone.
+#
+# Settle it here instead of relying on each machine's git config: normalize
+# every text file to LF in the repository *and* in the working tree. The
+# repository already stores LF, so this changes no committed content — it only
+# stops CRLF from reappearing in the working tree.
+*               text=auto eol=lf
+
+# Bash runs the hooks in .claude/settings.json; CRLF would break the shebang.
+*.sh            text eol=lf
+
+# Windows-native scripts genuinely need CRLF.
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+*.ps1           text eol=crlf
+
+# Generated; not worth reviewing in diffs.
+package-lock.json  -diff linguist-generated=true
+
+# SEC fixtures are evidence, not source: they are downloaded verbatim and their
+# expected.json values were verified against those exact bytes. Mark them so
+# diffs stay readable but nobody reformats them.
+fixtures/**     -diff
