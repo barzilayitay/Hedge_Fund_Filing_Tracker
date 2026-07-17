@@ -25,7 +25,7 @@ import { edgarFetch } from "../lib/edgar/client";
 // edgarFetch reads the User-Agent from the environment on each call; fall back
 // to the documented .env.example value so the script works without a local .env.
 process.env.EDGAR_USER_AGENT ??=
-  "HedgeFundFilingTracker barzilay.itay@gmail.com";
+  "HedgeFundFilingTracker your-email@example.com";
 
 const EDGAR_BASE = "https://www.sec.gov/Archives/edgar/data";
 const FIXTURE_DIR = join("fixtures", "13f");

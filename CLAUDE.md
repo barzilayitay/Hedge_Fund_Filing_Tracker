@@ -88,7 +88,7 @@ they are the only ways these commands work here.
 Windows** (studio, storage-api and postgres-meta):
 
 ```
-npx supabase start -x studio,storage-api,pg_meta,imgproxy,logflare,vector,mailpit
+npx supabase start -x studio,storage-api,postgres-meta,imgproxy,logflare,vector,mailpit
 ```
 
 **The Supabase CLI is a local project dependency, not a global binary.**
