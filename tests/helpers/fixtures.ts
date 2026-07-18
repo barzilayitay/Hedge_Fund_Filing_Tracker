@@ -7,6 +7,8 @@ import type { Parsed13F } from "@/lib/edgar/schemas13f";
 
 export const FIXTURE_DIR = join(__dirname, "..", "..", "fixtures", "13f");
 export const REFERENCE_DIR = join(__dirname, "..", "..", "fixtures", "reference");
+export const PRICES_DIR = join(__dirname, "..", "..", "fixtures", "prices");
+export const COMPANYFACTS_DIR = join(__dirname, "..", "..", "fixtures", "companyfacts");
 
 export interface ManifestEntry {
   label: string;
@@ -93,4 +95,42 @@ export function readCompanyTickersJson(): string {
 
 export function read13fListText(): string {
   return readFileSync(join(REFERENCE_DIR, "13flist2026q1.txt"), "utf-8");
+}
+
+export interface SpotcheckSecurity {
+  cusip: string;
+  ticker: string;
+  sector: string;
+  cik: string;
+  name: string;
+}
+
+/** The resolved cusip -> ticker/sector/cik cache the Phase 2 tests seed. */
+export function readSpotcheckSecurities(): SpotcheckSecurity[] {
+  return JSON.parse(
+    readFileSync(join(REFERENCE_DIR, "spotcheck-securities.json"), "utf-8"),
+  ) as SpotcheckSecurity[];
+}
+
+export function readPricesCsv(): string {
+  return readFileSync(join(PRICES_DIR, "quarterly_prices.csv"), "utf-8");
+}
+
+export interface DiffExpected {
+  cik: string;
+  period_of_report: string;
+  prior_period: string;
+  portfolio_value: number;
+  prior_portfolio_value: number;
+  positions: Array<Record<string, unknown>>;
+  summary: {
+    current: Record<string, unknown>;
+    prior: Record<string, unknown>;
+  };
+}
+
+export function readDiffExpected(): DiffExpected {
+  return JSON.parse(
+    readFileSync(join(FIXTURE_DIR, "berkshire.diff.expected.json"), "utf-8"),
+  ) as DiffExpected;
 }
