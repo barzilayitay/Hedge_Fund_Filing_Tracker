@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SYNTHETIC fixture, not a real SEC filing. Hand-authored for the Phase 2
+     put/call distinctness test (tests/phase2/amendment-flow.test.ts) only.
+     Kept out of fixtures/13f/ on purpose so it is not swept into the Phase 1
+     fixture suite (no manifest entry / expected.json). One issuer (synthetic
+     CUSIP SYNTH0001) is held as two equity rows (two otherManager
+     sub-portfolios), one put row, and one call row, to prove holdings_13f_agg
+     sums same-grain rows yet keeps put/call/equity distinct. -->
+<edgarSubmission xmlns:n1="http://www.sec.gov/edgar/common" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.sec.gov/edgar/thirteenffiler">
+  <schemaVersion>X0202</schemaVersion>
+  <headerData>
+    <submissionType>13F-HR</submissionType>
+    <filerInfo>
+      <liveTestFlag>LIVE</liveTestFlag>
+      <filer>
+        <credentials>
+          <cik>0009999999</cik>
+          <ccc>XXXXXXXX</ccc>
+        </credentials>
+      </filer>
+      <periodOfReport>03-31-2026</periodOfReport>
+    </filerInfo>
+  </headerData>
+  <formData>
+    <coverPage>
+      <reportCalendarOrQuarter>03-31-2026</reportCalendarOrQuarter>
+      <filingManager>
+        <name>SYNTHETIC PUT CALL TEST FUND</name>
+      </filingManager>
+      <reportType>13F HOLDINGS REPORT</reportType>
+      <provideInfoForInstruction5>N</provideInfoForInstruction5>
+    </coverPage>
+    <summaryPage>
+      <otherIncludedManagersCount>0</otherIncludedManagersCount>
+      <tableEntryTotal>4</tableEntryTotal>
+      <tableValueTotal>200000</tableValueTotal>
+    </summaryPage>
+  </formData>
+</edgarSubmission>

@@ -10,7 +10,7 @@ Human: read it before every gate review.
 |---|---|---|---|
 | 0 — Foundation | AWAITING GATE | phase-0 | — |
 | 1 — 13F ingestion | AWAITING GATE | phase-1 | — |
-| 2 — Analytics | NOT STARTED | — | — |
+| 2 — Analytics | AWAITING GATE | phase-2 | PASS 2026-07-18 |
 | 3 — Form 4 ingestion | NOT STARTED | — | — |
 | 4 — API | NOT STARTED | — | — |
 | 5 — Frontend | NOT STARTED | — | — |
@@ -20,6 +20,93 @@ Human: read it before every gate review.
 Statuses: NOT STARTED / IN PROGRESS / BLOCKED / AWAITING GATE / DONE
 
 ## Current phase notes
+
+### Phase 2 — Derived analytics
+
+**Delivered:**
+1. **Migration** `supabase/migrations/20260718120000_analytics.sql`:
+   - `quarterly_prices (ticker, quarter_end)` table.
+   - Secondary index `holdings_13f_cusip_accession_idx (cusip, accession_no)`
+     (AMENDMENT item 5).
+   - **`holdings_13f_agg`** view — the single aggregation every analytic reads:
+     `GROUP BY cik, period_of_report, cusip, put_call, share_class` over
+     `filings_effective` only, `SUM(value_usd/shares/principal_amt)`. No Phase 2
+     query touches raw `holdings_13f`.
+   - **`fund_holdings_enriched`** materialized view — all spec columns plus
+     synthesized `SOLD_OUT` rows; diffs on `(cusip, put_call, share_class)`;
+     divide-by-zero guarded; `est_avg_price` inlined (see Decision 3).
+   - **`fund_quarter_summary`** view — portfolio value, holdings count,
+     top-10 %, turnover (formula in a comment), sector allocation, top-5
+     new buys / top-5 sells (jsonb).
+   - **`refresh_derived()`** — rebuilds the matview.
+2. **Loaders** `scripts/load-prices.ts` (Yahoo quarter-end closes → upsert;
+   production, untested) and `scripts/load-companyfacts.ts` (shares_outstanding
+   from the committed companyfacts fixtures, or `--live` from SEC). Shared IO in
+   `scripts/providers.ts`; an optional-`pg` production `Sql` in
+   `scripts/prod-sql.ts`. Pure reshaping helpers in `lib/analytics/prices.ts`
+   and `lib/analytics/companyfacts.ts` (unit-tested offline).
+3. **One-time fixture builder** `scripts/build-phase2-fixtures.ts` produced the
+   frozen fixtures (run once, network; never in CI):
+   - `fixtures/prices/quarterly_prices.csv` — 34 tickers × 3 quarter-ends
+     (2025-09-30, 2025-12-31, 2026-03-31), Yahoo.
+   - `fixtures/companyfacts/CIK*.shares.json` — 28 issuers, the trimmed SEC
+     company-concept for `EntityCommonStockSharesOutstanding`.
+   - `fixtures/reference/spotcheck-securities.json` — real cusip→ticker/sector/
+     cik map for Berkshire's holdings (the resolved-`securities` cache tests
+     seed; clean-ticker names only, so Liberty trackers / foreign ADRs stay
+     unmapped).
+4. **Hand-computed expected file** `fixtures/13f/berkshire.diff.expected.json` —
+   8 positions covering every `position_status` (UNCHANGED×3, REDUCED×2, ADDED,
+   NEW, SOLD_OUT) + current/prior summary numbers, derived from raw fixture
+   inputs by the documented formulas, independently of the view SQL.
+5. **Tests** `tests/phase2/analytics.test.ts` (view + summary acceptance) and
+   `tests/phase2/helpers.test.ts` (pure helpers), with the seeding helper
+   `tests/helpers/phase2.ts`.
+
+**Acceptance criteria verification:**
+- `npm run test` ✅ 181 tests / 9 files. `npm run typecheck` ✅. `npm run lint` ✅.
+- All 8 hand-computed positions match to 4 dp on every column. The independent
+  hand-calculation agreed with the view output exactly on all overlapping
+  fields (cross-validation, not tautology).
+- Summary numbers match: portfolio value, count, top-10 % (90.7232), turnover
+  (11.7964), sector allocation, top buys/sells — all independently reproduced
+  from the raw fixtures.
+- First quarter (2025-12-31, no prior filing) → every status `NEW`,
+  `prior_pct_of_portfolio` null, `turnover_pct` null, no errors.
+- An unmapped Berkshire CUSIP appears in the enriched view with null
+  ticker/sector and a correct `pct_of_portfolio`.
+- `refresh_derived()` completes in well under 10s on fixture data.
+- **`npx supabase db reset` applied all three migrations cleanly** against the
+  real Supabase Postgres (Docker was up this session) — this also closes Phase
+  1 open question 5. Windows `-x` exclusions per CLAUDE.md were used.
+
+**Gate review — PASS (2026-07-18):** all five checks (typecheck, lint, test,
+build, `supabase db reset`) green; all acceptance criteria have passing tests;
+`berkshire.diff.expected.json` was independently re-verified against the raw
+fixtures (incl. a NEW and a SOLD_OUT row); AMENDMENT items a–e all hold. Four
+non-blocking follow-ups were raised and have now been **applied on this
+branch**:
+1. `specs/phase-2-analytics.md` AMENDMENT sketch corrected — dropped
+   `SUM(voting authority …)` and added the note that voting authority was not
+   captured in Phase 1 (recoverable via a Phase 1 schema+parser change; the raw
+   XML does carry `<votingAuthority>`).
+2. `specs/phase-2-analytics.md` gained a "Deferred to later phases" section
+   recording (a) ingest→`refresh_derived()` wiring + cadence + `REFRESH …
+   CONCURRENTLY` → Phase 6; (b) Yahoo price provider is unofficial/unkeyed,
+   pick a keyed provider → Phase 6/7; (c) `pct_*` are 0..100, Phase 5 must not
+   ×100; (d) multi-class issuers have null `pct_ownership` → Phase 5.
+3. `tests/phase2/amendment-flow.test.ts` added — asserts amendment semantics
+   flow into `holdings_13f_agg` and `fund_holdings_enriched`: RESTATEMENT (GFI
+   pair) aggregates the /A only; NEW HOLDINGS (BRK pair) unions original + /A.
+   Expected values are hand-derived from the fixture `expected.json`, not the
+   view.
+4. Same test file adds put/call distinctness coverage via a clearly-labelled
+   synthetic fixture (`tests/phase2/fixtures/synthetic-putcall.*`) held out of
+   the Phase 1 fixture sweep: one issuer as two equity rows + a put + a call →
+   `holdings_13f_agg` yields three distinct positions (equity rows SUMmed, put
+   and call never merged) and the enriched diff keeps them as three rows.
+
+Test count after follow-ups: **187 tests / 10 files** (was 181 / 9).
 
 ### Phase 1 — 13F ingestion
 
@@ -141,6 +228,67 @@ semantics under test are the same SQL that ships to Supabase.
 
 ## Decisions
 
+### Phase 2
+
+1. **`holdings_13f_agg` omits voting authority.** The AMENDMENT's aggregation
+   sketch lists `SUM(voting authority sole/shared/none)`, but Phase 1's
+   `holdings_13f` never captured voting-authority columns (it stores
+   shares/principal/value/discretion only). No Phase 2 output column uses voting
+   authority, so the view aggregates value/shares/principal only. Adding it
+   would be a Phase 1 schema+parser change with no consumer. *Flagged as a
+   non-blocking deviation before coding; recorded here per the workflow.*
+
+2. **Price provider is Yahoo, not Stooq.** The spec names Stooq, but Stooq now
+   gates its CSV endpoint behind a JavaScript proof-of-work bot-check, which we
+   do not bypass (safety rule). Yahoo's public chart API is the "equivalent free
+   provider" the spec explicitly permits; `scripts/providers.ts` and
+   `load-prices.ts` use it. Prices are real quarter-end closes fetched once and
+   frozen.
+
+3. **`est_avg_price` is an inline correlated subquery, not a function.** A
+   `language sql` STABLE function gets inlined into the matview plan, and PGlite
+   (the test engine) cannot resolve a view referenced during that inlining when
+   the view was created in the same migration batch; a `language plpgsql`
+   function fails the same way at *refresh* time (PGlite can't resolve any
+   relation referenced from a function body invoked while a matview is being
+   populated). A correlated subquery over `holdings_13f_agg` inlined directly in
+   the matview works on both PGlite and real Postgres. **Load-bearing constraint
+   for later phases: do not call user-defined functions from inside a
+   materialized view's defining query if the tests must run on PGlite.**
+
+4. **All `pct_*` columns are on a 0..100 scale** (percent, not fraction):
+   `pct_of_portfolio`, `prior_pct_of_portfolio`, `pct_change`, `pct_ownership`,
+   `top10_concentration_pct`, `turnover_pct`, and `sector_allocation` values.
+   Documented in the migration header. Confirm this matches the frontend's
+   expectation in Phase 5.
+
+5. **The migration is pure DDL; data seeds are loaded by the loaders, not the
+   migration.** `quarterly_prices` is seeded from the committed CSV via
+   `upsertQuarterlyPrices` (test helper / `load-prices.ts`), and
+   `shares_outstanding` via `load-companyfacts.ts` — mirroring Phase 1, where
+   reference tables are seeded by loader functions rather than inside
+   migrations. Keeps migrations file-IO-free and CI-portable.
+
+6. **Companyfacts fixtures are the trimmed company-concept, not full
+   companyfacts.** The full companyfacts document per issuer is multi-MB; we
+   commit only the `dei:EntityCommonStockSharesOutstanding` concept response
+   (~10 KB each, 28 files). `pickSharesOutstanding` accepts either shape, so the
+   production `--live` path (full or concept) still works.
+
+7. **Test `securities` are seeded as a resolved cache from
+   `spotcheck-securities.json`, and OpenFIGI was never called.** Per the phase
+   instruction, no live OpenFIGI. The committed map holds real
+   cusip→ticker/sector for Berkshire's clean-ticker holdings; every other CUSIP
+   the fixtures mention stays `unmapped` (created by `load13f`'s
+   `ensureSecurities`), which is exactly the unmapped-CUSIP acceptance case.
+
+8. **GOOGL's `pct_ownership` is null by design.** Alphabet does not tag
+   `dei:EntityCommonStockSharesOutstanding` (multi-class issuer), so no
+   shares-outstanding fixture exists for it and the ADDED spot-check position
+   has a legitimately-null `pct_ownership` — a mapped security whose issuer has
+   no shares-outstanding figure. The other 7 spot-checks exercise non-null
+   `pct_ownership`.
+
 ### Phase 1
 
 1. **The spec's `holdings_13f` PK would have destroyed 60% of the rows.**
@@ -252,6 +400,40 @@ semantics under test are the same SQL that ships to Supabase.
 
 ## Open questions for the human
 
+### Phase 2 (for the gate review)
+
+1. **Voting authority is not aggregated** (Decision 1) — it was never captured
+   in Phase 1. If any later view (e.g. a governance/insider overlay) needs it,
+   that is a Phase 1 schema + parser change, not a Phase 2 view change. Confirm
+   it is fine to defer.
+
+2. **[CARRIED FORWARD → Phase 6 gate]** **Price provider swapped Stooq →
+   Yahoo** (Decision 2) because Stooq now bot-checks its CSV endpoint. Confirm
+   Yahoo is acceptable as the frozen fixture source and the production
+   `load-prices.ts` provider, or name a keyed provider (Tiingo/Alpha Vantage)
+   you'd prefer for Phase 6/7 ops. Gate review accepted Yahoo for the frozen
+   fixtures; the production provider decision is deferred to the Phase 6
+   ops/scheduling work (see spec "Deferred to later phases" (b)).
+
+3. **[CARRIED FORWARD → Phase 5 gate]** **`pct_*` columns are 0..100**
+   (Decision 4). Confirm this matches what the Phase 5 frontend will expect, so
+   we don't multiply/divide by 100 twice. Recorded in the spec "Deferred to
+   later phases" (c); Phase 5 must render these values as-is.
+
+4. **`est_avg_price` / `qtr_first_owned` are bounded by loaded history.** With
+   only two Berkshire quarters loaded, a position's "first owned" and its
+   weighted average cost use at most those two quarters — not true
+   first-ever ownership. This is the intended best-effort heuristic
+   (ARCHITECTURE.md decision 6), but the numbers will shift as more historical
+   quarters are backfilled. Confirm the heuristic and its labeling.
+
+5. **[CARRIED FORWARD → Phase 5 gate]** **Multi-class issuers have null
+   `pct_ownership`** (Decision 8, e.g. GOOGL): the plain
+   `dei:EntityCommonStockSharesOutstanding` concept is absent for them. A future
+   improvement could sum class-level `us-gaap` shares. Acceptable to leave null
+   for now? Recorded in the spec "Deferred to later phases" (d); Phase 5 must
+   render a null `pct_ownership` gracefully for a mapped security.
+
 ### Phase 1 (need a decision before Phase 2 builds on the schema)
 
 1. **`holdings_13f` PK is `(accession_no, row_index)`, not the spec's
@@ -281,12 +463,11 @@ semantics under test are the same SQL that ships to Supabase.
    to the v3 `/mapping` spec but not verified against the real API. First live
    run should be watched.
 
-5. **`npx supabase db reset` was not run — Docker Desktop is not running on
-   this machine** (`docker info` fails to connect). The migration is executed
-   in full on every test run against Postgres 18 via PGlite, so the DDL is
-   known-good, but it has not been applied by the Supabase CLI against
-   Supabase's own Postgres. Please run it once (see the Windows section of
-   CLAUDE.md for the required `-x` flags).
+5. ~~`npx supabase db reset` was not run — Docker Desktop is not running.~~
+   **Done in the Phase 2 session:** Docker was up, and `npx supabase db reset`
+   applied all three migrations (`init`, `13f_schema`, `analytics`) cleanly with
+   the CLAUDE.md `-x` exclusions. One transient "cannot remove container" error
+   cleared on a re-run.
 
 ### Phase 0 (carried over)
 
@@ -318,5 +499,18 @@ semantics under test are the same SQL that ships to Supabase.
 - The 13(f) securities list filename pins `2026q1`; refreshing it quarterly is
   unhandled (see open question 3).
 - `createOpenFigiClient` has never run against the live API (open question 4).
-- The `Sql` port has only a PGlite implementation (tests). Phase 4/6 needs a
-  production implementation against Supabase Postgres.
+- The `Sql` port has only a PGlite implementation (tests) plus a thin optional-
+  `pg` adapter in `scripts/prod-sql.ts` used by the loader CLIs. `pg` is **not**
+  a committed dependency and the loaders are not test-covered; Phase 4/6 still
+  needs the real production `Sql` implementation.
+- **Phase 2 fixture prices/shares-outstanding are point-in-time snapshots**
+  fetched once (Yahoo / SEC) and frozen. `scripts/build-phase2-fixtures.ts`
+  regenerates them (network) but doing so will move the numbers and invalidate
+  `berkshire.diff.expected.json` — treat it like the 13F fixtures: pinned, not
+  re-run casually.
+- **Do not call user-defined functions from a materialized view's defining
+  query** while the test suite runs on PGlite — PGlite cannot resolve relations
+  referenced from a function invoked during matview population (Phase 2
+  Decision 3). Inline the logic instead.
+- `est_avg_price` / `qtr_first_owned` reflect only loaded history (two quarters
+  in fixtures), not true lifetime ownership; revisit when backfill lands.

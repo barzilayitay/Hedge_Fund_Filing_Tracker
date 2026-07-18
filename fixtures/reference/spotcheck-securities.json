@@ -1,0 +1,240 @@
+[
+  {
+    "cusip": "02005N100",
+    "ticker": "ALLY",
+    "sector": "Financials",
+    "cik": "0000040729",
+    "name": "Ally Financial Inc."
+  },
+  {
+    "cusip": "02079K107",
+    "ticker": "GOOG",
+    "sector": "Communication Services",
+    "cik": "0001652044",
+    "name": "Alphabet Inc."
+  },
+  {
+    "cusip": "02079K305",
+    "ticker": "GOOGL",
+    "sector": "Communication Services",
+    "cik": "0001652044",
+    "name": "Alphabet Inc."
+  },
+  {
+    "cusip": "023135106",
+    "ticker": "AMZN",
+    "sector": "Consumer Discretionary",
+    "cik": "0001018724",
+    "name": "AMAZON COM INC"
+  },
+  {
+    "cusip": "025816109",
+    "ticker": "AXP",
+    "sector": "Financials",
+    "cik": "0000004962",
+    "name": "AMERICAN EXPRESS CO"
+  },
+  {
+    "cusip": "037833100",
+    "ticker": "AAPL",
+    "sector": "Technology",
+    "cik": "0000320193",
+    "name": "Apple Inc."
+  },
+  {
+    "cusip": "060505104",
+    "ticker": "BAC",
+    "sector": "Financials",
+    "cik": "0000070858",
+    "name": "BANK OF AMERICA CORP /DE/"
+  },
+  {
+    "cusip": "14040H105",
+    "ticker": "COF",
+    "sector": "Financials",
+    "cik": "0000927628",
+    "name": "CAPITAL ONE FINANCIAL CORP"
+  },
+  {
+    "cusip": "16119P108",
+    "ticker": "CHTR",
+    "sector": "Communication Services",
+    "cik": "0001091667",
+    "name": "CHARTER COMMUNICATIONS, INC. /MO/"
+  },
+  {
+    "cusip": "166764100",
+    "ticker": "CVX",
+    "sector": "Energy",
+    "cik": "0000093410",
+    "name": "CHEVRON CORP"
+  },
+  {
+    "cusip": "191216100",
+    "ticker": "KO",
+    "sector": "Consumer Staples",
+    "cik": "0000021344",
+    "name": "COCA COLA CO"
+  },
+  {
+    "cusip": "21036P108",
+    "ticker": "STZ",
+    "sector": "Consumer Staples",
+    "cik": "0000016918",
+    "name": "CONSTELLATION BRANDS, INC."
+  },
+  {
+    "cusip": "23918K108",
+    "ticker": "DVA",
+    "sector": "Health Care",
+    "cik": "0000927066",
+    "name": "DAVITA INC."
+  },
+  {
+    "cusip": "247361702",
+    "ticker": "DAL",
+    "sector": "Industrials",
+    "cik": "0000027904",
+    "name": "DELTA AIR LINES, INC."
+  },
+  {
+    "cusip": "25754A201",
+    "ticker": "DPZ",
+    "sector": "Consumer Discretionary",
+    "cik": "0001286681",
+    "name": "DOMINOS PIZZA INC"
+  },
+  {
+    "cusip": "47233W109",
+    "ticker": "JEF",
+    "sector": "Financials",
+    "cik": "0000096223",
+    "name": "Jefferies Financial Group Inc."
+  },
+  {
+    "cusip": "500754106",
+    "ticker": "KHC",
+    "sector": "Consumer Staples",
+    "cik": "0001637459",
+    "name": "Kraft Heinz Co"
+  },
+  {
+    "cusip": "501044101",
+    "ticker": "KR",
+    "sector": "Consumer Staples",
+    "cik": "0000056873",
+    "name": "KROGER CO"
+  },
+  {
+    "cusip": "512816109",
+    "ticker": "LAMR",
+    "sector": "Real Estate",
+    "cik": "0001090425",
+    "name": "LAMAR ADVERTISING CO/NEW"
+  },
+  {
+    "cusip": "526057104",
+    "ticker": "LEN",
+    "sector": "Consumer Discretionary",
+    "cik": "0000920760",
+    "name": "LENNAR CORP /NEW/"
+  },
+  {
+    "cusip": "546347105",
+    "ticker": "LPX",
+    "sector": "Materials",
+    "cik": "0000060519",
+    "name": "LOUISIANA-PACIFIC CORP"
+  },
+  {
+    "cusip": "55616P104",
+    "ticker": "M",
+    "sector": "Consumer Discretionary",
+    "cik": "0000794367",
+    "name": "Macy's, Inc."
+  },
+  {
+    "cusip": "57636Q104",
+    "ticker": "MA",
+    "sector": "Financials",
+    "cik": "0001141391",
+    "name": "Mastercard Inc"
+  },
+  {
+    "cusip": "615369105",
+    "ticker": "MCO",
+    "sector": "Financials",
+    "cik": "0001059556",
+    "name": "MOODYS CORP /DE/"
+  },
+  {
+    "cusip": "62944T105",
+    "ticker": "NVR",
+    "sector": "Consumer Discretionary",
+    "cik": "0000906163",
+    "name": "NVR INC"
+  },
+  {
+    "cusip": "650111107",
+    "ticker": "NYT",
+    "sector": "Communication Services",
+    "cik": "0000071691",
+    "name": "NEW YORK TIMES CO"
+  },
+  {
+    "cusip": "670346105",
+    "ticker": "NUE",
+    "sector": "Materials",
+    "cik": "0000073309",
+    "name": "NUCOR CORP"
+  },
+  {
+    "cusip": "674599105",
+    "ticker": "OXY",
+    "sector": "Energy",
+    "cik": "0000797468",
+    "name": "OCCIDENTAL PETROLEUM CORP /DE/"
+  },
+  {
+    "cusip": "73278L105",
+    "ticker": "POOL",
+    "sector": "Consumer Discretionary",
+    "cik": "0000945841",
+    "name": "POOL CORP"
+  },
+  {
+    "cusip": "829933100",
+    "ticker": "SIRI",
+    "sector": "Communication Services",
+    "cik": "0000908937",
+    "name": "SIRIUS XM HOLDINGS INC."
+  },
+  {
+    "cusip": "91324P102",
+    "ticker": "UNH",
+    "sector": "Health Care",
+    "cik": "0000731766",
+    "name": "UNITEDHEALTH GROUP INC"
+  },
+  {
+    "cusip": "92343E102",
+    "ticker": "VRSN",
+    "sector": "Technology",
+    "cik": "0001014473",
+    "name": "VERISIGN INC/CA"
+  },
+  {
+    "cusip": "92826C839",
+    "ticker": "V",
+    "sector": "Financials",
+    "cik": "0001403161",
+    "name": "VISA INC."
+  },
+  {
+    "cusip": "H1467J104",
+    "ticker": "CB",
+    "sector": "Financials",
+    "cik": "0000896159",
+    "name": "Chubb Ltd"
+  }
+]

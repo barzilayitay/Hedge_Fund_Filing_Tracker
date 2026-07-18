@@ -43,8 +43,15 @@ export interface TestDb {
   close: () => Promise<void>;
 }
 
-/** Tables in the Phase 1 schema, emptied between tests. */
-const TABLES = ["holdings_13f", "filings", "filers", "securities", "companies"];
+/** Base tables emptied between tests (Phase 1 + Phase 2). */
+const TABLES = [
+  "holdings_13f",
+  "filings",
+  "filers",
+  "securities",
+  "companies",
+  "quarterly_prices",
+];
 
 export async function createTestDb(): Promise<TestDb> {
   const db = new PGlite();
