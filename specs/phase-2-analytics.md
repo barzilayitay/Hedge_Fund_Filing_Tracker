@@ -75,8 +75,13 @@ Consequences that are BINDING for Phase 2:
    or filer overlap MUST first aggregate rows within a filing:
 
        GROUP BY filer, period, cusip, put_call, share_class
-       SUM(value_usd), SUM(shares/principal amount),
-       SUM(voting authority sole/shared/none)
+       SUM(value_usd), SUM(shares/principal amount)
+
+   Voting authority columns were not captured by the Phase 1 parser/schema
+   and are omitted from holdings_13f_agg. The raw XML contains
+   <votingAuthority>; capturing it requires a Phase 1 schema + parser change
+   and re-ingest, deferred until a phase needs it (candidate: Phase 3+
+   governance/ownership views).
 
    put_call must never be merged with equity rows for the same CUSIP; a put,
    a call, and a share position in the same issuer are three distinct
@@ -108,3 +113,34 @@ Known limitations inherited from Phase 1 (do not rediscover):
 - createOpenFigiClient has never been exercised against the live API; only
   ~34% of fixture CUSIPs resolve from the seed alone. First live invocation
   must be supervised.
+
+## Deferred to later phases (recorded at the Phase 2 gate review)
+
+These are known, accepted gaps at the close of Phase 2; each is tagged with
+the phase gate that must resolve it.
+
+a. **Refresh wiring and cadence (→ Phase 6).** `refresh_derived()` is the only
+   refresh path, but nothing calls it on ingest — the loader (`load13f`) does
+   not, and there is no scheduler. Wiring ingest → `refresh_derived()`, the
+   refresh cadence, and switching the function to `REFRESH MATERIALIZED VIEW
+   CONCURRENTLY fund_holdings_enriched` (the unique index
+   `fund_holdings_enriched_pk` already exists to allow it) are deferred to the
+   Phase 6 ops/scheduling work. Until then the matview is stale between loads.
+
+b. **Price provider is unofficial/unkeyed (→ Phase 6/7).** `load-prices.ts`
+   uses Yahoo's public chart API (fixtures are frozen, so tests never hit it).
+   Yahoo is unofficial, unkeyed, and could rate-limit or break in automated
+   ops. Phase 6/7 should choose a keyed provider (e.g. Tiingo / Alpha Vantage)
+   for the production refresh path.
+
+c. **`pct_*` columns are on a 0..100 scale (→ Phase 5).** Every percentage
+   column (`pct_of_portfolio`, `prior_pct_of_portfolio`, `pct_change`,
+   `pct_ownership`, `top10_concentration_pct`, `turnover_pct`, and
+   `sector_allocation` values) is already a percent, not a fraction. The Phase 5
+   frontend must render them as-is and must NOT multiply by 100 again.
+
+d. **Multi-class issuers have null `pct_ownership` (→ Phase 5).** Issuers such
+   as GOOGL do not tag `dei:EntityCommonStockSharesOutstanding`, so their
+   `shares_outstanding` is null and `pct_ownership` is legitimately null. A
+   future improvement could sum class-level `us-gaap` shares; until then the
+   frontend must handle a null `pct_ownership` for a mapped security.

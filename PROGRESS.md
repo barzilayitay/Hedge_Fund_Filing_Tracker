@@ -10,7 +10,7 @@ Human: read it before every gate review.
 |---|---|---|---|
 | 0 — Foundation | AWAITING GATE | phase-0 | — |
 | 1 — 13F ingestion | AWAITING GATE | phase-1 | — |
-| 2 — Analytics | AWAITING GATE | phase-2 | — |
+| 2 — Analytics | AWAITING GATE | phase-2 | PASS 2026-07-18 |
 | 3 — Form 4 ingestion | NOT STARTED | — | — |
 | 4 — API | NOT STARTED | — | — |
 | 5 — Frontend | NOT STARTED | — | — |
@@ -79,6 +79,34 @@ Statuses: NOT STARTED / IN PROGRESS / BLOCKED / AWAITING GATE / DONE
 - **`npx supabase db reset` applied all three migrations cleanly** against the
   real Supabase Postgres (Docker was up this session) — this also closes Phase
   1 open question 5. Windows `-x` exclusions per CLAUDE.md were used.
+
+**Gate review — PASS (2026-07-18):** all five checks (typecheck, lint, test,
+build, `supabase db reset`) green; all acceptance criteria have passing tests;
+`berkshire.diff.expected.json` was independently re-verified against the raw
+fixtures (incl. a NEW and a SOLD_OUT row); AMENDMENT items a–e all hold. Four
+non-blocking follow-ups were raised and have now been **applied on this
+branch**:
+1. `specs/phase-2-analytics.md` AMENDMENT sketch corrected — dropped
+   `SUM(voting authority …)` and added the note that voting authority was not
+   captured in Phase 1 (recoverable via a Phase 1 schema+parser change; the raw
+   XML does carry `<votingAuthority>`).
+2. `specs/phase-2-analytics.md` gained a "Deferred to later phases" section
+   recording (a) ingest→`refresh_derived()` wiring + cadence + `REFRESH …
+   CONCURRENTLY` → Phase 6; (b) Yahoo price provider is unofficial/unkeyed,
+   pick a keyed provider → Phase 6/7; (c) `pct_*` are 0..100, Phase 5 must not
+   ×100; (d) multi-class issuers have null `pct_ownership` → Phase 5.
+3. `tests/phase2/amendment-flow.test.ts` added — asserts amendment semantics
+   flow into `holdings_13f_agg` and `fund_holdings_enriched`: RESTATEMENT (GFI
+   pair) aggregates the /A only; NEW HOLDINGS (BRK pair) unions original + /A.
+   Expected values are hand-derived from the fixture `expected.json`, not the
+   view.
+4. Same test file adds put/call distinctness coverage via a clearly-labelled
+   synthetic fixture (`tests/phase2/fixtures/synthetic-putcall.*`) held out of
+   the Phase 1 fixture sweep: one issuer as two equity rows + a put + a call →
+   `holdings_13f_agg` yields three distinct positions (equity rows SUMmed, put
+   and call never merged) and the enriched diff keeps them as three rows.
+
+Test count after follow-ups: **187 tests / 10 files** (was 181 / 9).
 
 ### Phase 1 — 13F ingestion
 
@@ -379,13 +407,18 @@ semantics under test are the same SQL that ships to Supabase.
    that is a Phase 1 schema + parser change, not a Phase 2 view change. Confirm
    it is fine to defer.
 
-2. **Price provider swapped Stooq → Yahoo** (Decision 2) because Stooq now
-   bot-checks its CSV endpoint. Confirm Yahoo is acceptable as the frozen
-   fixture source and the production `load-prices.ts` provider, or name a keyed
-   provider (Tiingo/Alpha Vantage) you'd prefer for Phase 6/7 ops.
+2. **[CARRIED FORWARD → Phase 6 gate]** **Price provider swapped Stooq →
+   Yahoo** (Decision 2) because Stooq now bot-checks its CSV endpoint. Confirm
+   Yahoo is acceptable as the frozen fixture source and the production
+   `load-prices.ts` provider, or name a keyed provider (Tiingo/Alpha Vantage)
+   you'd prefer for Phase 6/7 ops. Gate review accepted Yahoo for the frozen
+   fixtures; the production provider decision is deferred to the Phase 6
+   ops/scheduling work (see spec "Deferred to later phases" (b)).
 
-3. **`pct_*` columns are 0..100** (Decision 4). Confirm this matches what the
-   Phase 5 frontend will expect, so we don't multiply/divide by 100 twice.
+3. **[CARRIED FORWARD → Phase 5 gate]** **`pct_*` columns are 0..100**
+   (Decision 4). Confirm this matches what the Phase 5 frontend will expect, so
+   we don't multiply/divide by 100 twice. Recorded in the spec "Deferred to
+   later phases" (c); Phase 5 must render these values as-is.
 
 4. **`est_avg_price` / `qtr_first_owned` are bounded by loaded history.** With
    only two Berkshire quarters loaded, a position's "first owned" and its
@@ -394,10 +427,12 @@ semantics under test are the same SQL that ships to Supabase.
    (ARCHITECTURE.md decision 6), but the numbers will shift as more historical
    quarters are backfilled. Confirm the heuristic and its labeling.
 
-5. **Multi-class issuers have null `pct_ownership`** (Decision 8, e.g. GOOGL):
-   the plain `dei:EntityCommonStockSharesOutstanding` concept is absent for
-   them. A future improvement could sum class-level `us-gaap` shares. Acceptable
-   to leave null for now?
+5. **[CARRIED FORWARD → Phase 5 gate]** **Multi-class issuers have null
+   `pct_ownership`** (Decision 8, e.g. GOOGL): the plain
+   `dei:EntityCommonStockSharesOutstanding` concept is absent for them. A future
+   improvement could sum class-level `us-gaap` shares. Acceptable to leave null
+   for now? Recorded in the spec "Deferred to later phases" (d); Phase 5 must
+   render a null `pct_ownership` gracefully for a mapped security.
 
 ### Phase 1 (need a decision before Phase 2 builds on the schema)
 
