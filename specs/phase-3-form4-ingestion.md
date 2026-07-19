@@ -59,3 +59,40 @@ Phase 1 complete (shares `filings`, `companies` tables). Independent of Phase 2.
 
 ## Out of scope
 Form 3/5 (later enhancement), 13D/G parsing (stub the table, fill later), UI.
+
+## As-built notes (Phase 3 implementation)
+
+These reflect the shipped implementation and accepted deviations. See
+`PROGRESS.md` "Decisions → Phase 3" for the full rationale on each.
+
+- **Shared `filings` table.** Form 4 filings land in `filings` with
+  `form_type` '4'/'4/A', grouped under the **issuer** CIK. Two 13F-only
+  constraints were relaxed to allow this: the `filings.cik → filers.cik`
+  foreign key was **dropped** (13F managers and Form 4 issuers are disjoint CIK
+  universes), and the amendment-type check was **re-scoped to 13F** (a Form 4/A
+  does not carry the 13F `RESTATEMENT`/`NEW HOLDINGS` enum, so non-13F filings
+  must leave `amendment_type` null). Every 13F-only read path was audited and
+  already filters `form_type` (`holdings_13f_agg`, `reconcilePeriod`); the Form
+  4 views read `form4_transactions` only.
+
+- **Form 4/A supersession is deferred.** The one 4/A fixture
+  (`purchase-bankwell`) has no matching original in the set and no acceptance
+  criterion exercises supersession, so it loads as an ordinary filing. Form 4
+  amendment reconciliation is left to the phase that needs it.
+
+- **`form4_transactions` PK is `(accession_no, insider_cik, table_type,
+  row_index)`** (the loader's idempotency key), not ARCHITECTURE's surrogate
+  `id` — this makes replace-per-accession trivially idempotent without a churny
+  surrogate. `row_index` is the transaction's position within its table_type,
+  shared across a joint filing's owners.
+
+- **`insider_sentiment` "trailing 90 days"** is measured from each company's
+  most recent transaction (`as_of`), not wall-clock `now()`, so the view is
+  deterministic over frozen fixtures.
+
+- **Fixtures reused from Phase 0, re-pinned.** No new Form 4 documents were
+  fetched. `scripts/fetch-fixtures.ts` was deleted and replaced by the pinned
+  `scripts/fetch-form4-fixtures.ts` (`npm run fixtures:form4`). The committed
+  `fixtures/form4/manifest.json` ships with **placeholder accessions** until a
+  human runs that script; `tests/phase3/manifest.test.ts` gates on it (the suite
+  stays red until real accessions are pinned).

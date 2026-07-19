@@ -1,4 +1,68 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4",
+  "periodOfReport": "2026-04-15",
+  "issuerCik": "0000320193",
+  "issuerName": "Apple Inc.",
+  "issuerTicker": "AAPL",
+  "ownerCount": 1,
+  "ownerCiks": [
+    "0002100523"
+  ],
+  "transactionCount": 6,
+  "holdingsSkipped": 0,
+  "is10b5One": false,
+  "distinctCodes": [
+    "F",
+    "M"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0002100523",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Common Stock",
+      "transactionCode": "M",
+      "transactionDate": "2026-04-15",
+      "shares": 1717,
+      "price": null,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 40879,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F1": "Each restricted stock unit (\"RSU\") represents the right to receive, at settlement, one share of common stock. This transaction represents the settlement of RSUs in shares of common stock on their scheduled vesting date.",
+        "F2": "The number of securities reported reflects the acquisition on January 30, 2026 of 32 shares of Apple Inc.'s common stock pursuant to the Apple Inc. Employee Stock Purchase Plan (\"ESPP\") for the ESPP purchase period of August 1, 2025 through January 30, 2026."
+      }
+    },
+    {
+      "ownerCik": "0002100523",
+      "tableType": "deriv",
+      "rowIndex": 0,
+      "securityTitle": "Restricted Stock Unit",
+      "transactionCode": "M",
+      "transactionDate": "2026-04-15",
+      "shares": 540,
+      "price": null,
+      "acquiredDisposed": "D",
+      "sharesOwnedAfter": 540,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": "Common Stock",
+      "underlyingShares": 540,
+      "footnotes": {
+        "F1": "Each restricted stock unit (\"RSU\") represents the right to receive, at settlement, one share of common stock. This transaction represents the settlement of RSUs in shares of common stock on their scheduled vesting date.",
+        "F4": "This award was granted on September 25, 2022. 12.5% of the award vested on April 15, 2023 and the remaining RSUs vest 12.5% in semi-annual installments over the four-year period ending October 15, 2026, subject to the terms and conditions of the underlying award agreement."
+      }
+    }
+  ]
 }

@@ -43,11 +43,15 @@ export interface TestDb {
   close: () => Promise<void>;
 }
 
-/** Base tables emptied between tests (Phase 1 + Phase 2). */
+/** Base tables emptied between tests (Phase 1 + Phase 2 + Phase 3). */
 const TABLES = [
   "holdings_13f",
+  "form4_transactions",
+  "insider_relationships",
+  "ownership_13dg",
   "filings",
   "filers",
+  "insiders",
   "securities",
   "companies",
   "quarterly_prices",

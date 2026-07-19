@@ -1,4 +1,67 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4",
+  "periodOfReport": "2026-04-30",
+  "issuerCik": "0001318605",
+  "issuerName": "Tesla, Inc.",
+  "issuerTicker": "TSLA",
+  "ownerCount": 1,
+  "ownerCiks": [
+    "0001331680"
+  ],
+  "transactionCount": 18,
+  "holdingsSkipped": 0,
+  "is10b5One": true,
+  "distinctCodes": [
+    "M",
+    "S"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0001331680",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Common Stock",
+      "transactionCode": "M",
+      "transactionDate": "2026-04-30",
+      "shares": 40948,
+      "price": 14.99,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 74808,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": true,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F1": "The transactions reported on this Form 4 were effected pursuant to a Rule 10b5-1 trading plan adopted by the reporting person on November 26, 2025."
+      }
+    },
+    {
+      "ownerCik": "0001331680",
+      "tableType": "deriv",
+      "rowIndex": 0,
+      "securityTitle": "Non-Qualified Stock Option (right to buy)",
+      "transactionCode": "M",
+      "transactionDate": "2026-04-30",
+      "shares": 40948,
+      "price": 0,
+      "acquiredDisposed": "D",
+      "sharesOwnedAfter": 0,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": true,
+      "conversionOrExercisePrice": 14.99,
+      "exerciseDate": null,
+      "expirationDate": "2026-06-18",
+      "underlyingSecurityTitle": "Common Stock",
+      "underlyingShares": 40948,
+      "footnotes": {
+        "F1": "The transactions reported on this Form 4 were effected pursuant to a Rule 10b5-1 trading plan adopted by the reporting person on November 26, 2025.",
+        "F18": "1/36th of the shares granted shall become vested and exercisable as of each monthly anniversary from June 18, 2019, such that all shares subject to the option were fully vested and exercisable by June 18, 2022."
+      }
+    }
+  ]
 }

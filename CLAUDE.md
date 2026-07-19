@@ -29,9 +29,10 @@ npm run test:watch   # vitest watch
 npm run typecheck    # tsc --noEmit
 npm run lint         # eslint
 npm run e2e          # playwright (requires dev server or preview build)
-npm run fixtures     # download/refresh EDGAR fixtures (network required; rarely run)
-npm run fixtures:13f # refresh 13F fixture docs + SEC reference data (network)
-npm run fixtures:expected  # regenerate fixtures/13f/*.expected.json (offline)
+npm run fixtures:13f   # refresh 13F fixture docs + SEC reference data (network)
+npm run fixtures:expected      # regenerate fixtures/13f/*.expected.json (offline)
+npm run fixtures:form4         # re-pin Form 4 fixtures + write manifest.json (network)
+npm run fixtures:form4:expected # regenerate fixtures/form4/*.expected.json (offline)
 npx supabase migration new <name>   # create migration
 npx supabase db reset               # rebuild local db from migrations + seed
 ```

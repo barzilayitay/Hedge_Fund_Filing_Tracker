@@ -1,4 +1,42 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4",
+  "periodOfReport": "2026-06-30",
+  "issuerCik": "0000019617",
+  "issuerName": "JPMORGAN CHASE & CO",
+  "issuerTicker": "JPM",
+  "ownerCount": 1,
+  "ownerCiks": [
+    "0001169896"
+  ],
+  "transactionCount": 1,
+  "holdingsSkipped": 1,
+  "is10b5One": false,
+  "distinctCodes": [
+    "A"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0001169896",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Common Stock",
+      "transactionCode": "A",
+      "transactionDate": "2026-06-30",
+      "shares": 137.4759,
+      "price": 327.33,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 29965.7605,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F1": "Deferral of quarterly retainer, payable in common stock following termination of service as director."
+      }
+    }
+  ]
 }

@@ -1,4 +1,42 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4",
+  "periodOfReport": "2026-03-20",
+  "issuerCik": "0001061219",
+  "issuerName": "ENTERPRISE PRODUCTS PARTNERS L.P.",
+  "issuerTicker": "EPD",
+  "ownerCount": 1,
+  "ownerCiks": [
+    "0001183251"
+  ],
+  "transactionCount": 1,
+  "holdingsSkipped": 3,
+  "is10b5One": false,
+  "distinctCodes": [
+    "P"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0001183251",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Common Units Representing Limited Partnership Interests",
+      "transactionCode": "P",
+      "transactionDate": "2026-03-20",
+      "shares": 2665,
+      "price": 37.5494,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 77576,
+      "directIndirect": "I",
+      "natureOfOwnership": "By Trust",
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F1": "Represents the weighted average purchase price. These common units representing limited partner interests in the issuer (\"Common Units\") were purchased at various prices ranging from $37.545 to $37.5495. Financial information regarding the number of Common Units purchased at each price will be provided upon the request of the United States Securities and Exchange Commission staff, the issuer, or a security holder of the issuer."
+      }
+    }
+  ]
 }

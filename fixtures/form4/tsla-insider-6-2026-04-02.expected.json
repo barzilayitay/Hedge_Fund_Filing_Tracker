@@ -1,4 +1,63 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4",
+  "periodOfReport": "2026-03-31",
+  "issuerCik": "0001318605",
+  "issuerName": "Tesla, Inc.",
+  "issuerTicker": "TSLA",
+  "ownerCount": 1,
+  "ownerCiks": [
+    "0001972928"
+  ],
+  "transactionCount": 2,
+  "holdingsSkipped": 1,
+  "is10b5One": false,
+  "distinctCodes": [
+    "M"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0001972928",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Common Stock",
+      "transactionCode": "M",
+      "transactionDate": "2026-03-31",
+      "shares": 20000,
+      "price": 20.57,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 20000,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {}
+    },
+    {
+      "ownerCik": "0001972928",
+      "tableType": "deriv",
+      "rowIndex": 0,
+      "securityTitle": "Non-Qualified Stock Option (right to buy)",
+      "transactionCode": "M",
+      "transactionDate": "2026-03-31",
+      "shares": 20000,
+      "price": 0,
+      "acquiredDisposed": "D",
+      "sharesOwnedAfter": 260650,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": 20.57,
+      "exerciseDate": null,
+      "expirationDate": "2028-08-20",
+      "underlyingSecurityTitle": "Common Stock",
+      "underlyingShares": 20000,
+      "footnotes": {
+        "F2": "Represents option awards granted with respect to 375,000 total shares initially, which vest as follows: (a) with respect to 150,000 shares subject to the options, 1/48th of such shares became vested and exercisable upon the Issuer's achievement of certain performance objectives set forth in the option agreements, and 1/48th of the shares become vested and exercisable on each monthly anniversary thereafter, and (b) with respect to 225,000 shares subject to the options, 1/60th of such shares became vested and exercisable on August 20, 2018, and 1/60th of the shares become vested and exercisable each month thereafter."
+      }
+    }
+  ]
 }
