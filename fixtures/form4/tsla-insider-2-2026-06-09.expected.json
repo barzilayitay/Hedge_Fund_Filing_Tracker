@@ -1,4 +1,66 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4",
+  "periodOfReport": "2026-06-05",
+  "issuerCik": "0001318605",
+  "issuerName": "Tesla, Inc.",
+  "issuerTicker": "TSLA",
+  "ownerCount": 1,
+  "ownerCiks": [
+    "0001771340"
+  ],
+  "transactionCount": 3,
+  "holdingsSkipped": 1,
+  "is10b5One": false,
+  "distinctCodes": [
+    "M",
+    "S"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0001771340",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Common Stock",
+      "transactionCode": "M",
+      "transactionDate": "2026-06-05",
+      "shares": 6538,
+      "price": 0,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 24644.5,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F1": "Shares of the Issuer's common stock were issued to the reporting person upon the vesting of restricted stock units on June 5, 2026."
+      }
+    },
+    {
+      "ownerCik": "0001771340",
+      "tableType": "deriv",
+      "rowIndex": 0,
+      "securityTitle": "Restricted Stock Unit",
+      "transactionCode": "M",
+      "transactionDate": "2026-06-05",
+      "shares": 6538,
+      "price": 0,
+      "acquiredDisposed": "D",
+      "sharesOwnedAfter": 58844,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": 0,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": "Common Stock",
+      "underlyingShares": 6538,
+      "footnotes": {
+        "F4": "1/16 of the total restricted stock units initially subject to this award vested on December 5, 2024 and 1/16th of the total units initially subject to this award vest every quarter thereafter, so that all such shares subject to this award will be fully vested on September 5, 2028."
+      }
+    }
+  ]
 }

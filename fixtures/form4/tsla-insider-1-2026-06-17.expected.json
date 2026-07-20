@@ -1,4 +1,68 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4",
+  "periodOfReport": "2026-06-16",
+  "issuerCik": "0001318605",
+  "issuerName": "Tesla, Inc.",
+  "issuerTicker": "TSLA",
+  "ownerCount": 1,
+  "ownerCiks": [
+    "0001494730"
+  ],
+  "transactionCount": 3,
+  "holdingsSkipped": 1,
+  "is10b5One": false,
+  "distinctCodes": [
+    "F",
+    "M"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0001494730",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Common Stock",
+      "transactionCode": "M",
+      "transactionDate": "2026-06-16",
+      "shares": 303960630,
+      "price": 23.34,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 727704534,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F1": "Represents shares of restricted stock underlying exercise of a performance-based stock option award to purchase shares of common stock of Tesla, Inc. (the \"Company\" and such award, the \"Award\") in accordance with an implementation agreement, dated April 21, 2026 (the \"Implementation Agreement\") between the Company and the Reporting Person. The Reporting Person delivered notice of the intended exercise date and method to the Company on June 9, 2026 in accordance with the five business day notice period pursuant to the Implementation Agreement. The shares of restricted stock are scheduled to vest on January 19, 2028, subject to the Reporting Person's satisfaction of a service-based vesting condition.",
+        "F2": "Includes 423,743,904 shares of restricted stock that were granted pursuant to Tesla, Inc.'s 2025 CEO Performance Award in twelve equal tranches, and were issued following receipt of all necessary approvals. The shares of restricted stock are subject to a voting agreement, and the Reporting Person has given an irrevocable proxy to the Company's secretary to vote the shares in accordance with the terms of the voting agreement. The earning of each tranche is subject to satisfaction of certain conditions. If earned on or prior to September 3, 2030, the tranches of restricted stock will vest on March 3, 2033, and if earned from September 4, 2030 through September 3, 2035, the tranches of restricted stock will vest on September 3, 2035, in each case subject to satisfaction of certain conditions."
+      }
+    },
+    {
+      "ownerCik": "0001494730",
+      "tableType": "deriv",
+      "rowIndex": 0,
+      "securityTitle": "Non-Qualified Stock Option (right to buy)",
+      "transactionCode": "M",
+      "transactionDate": "2026-06-16",
+      "shares": 303960630,
+      "price": 0,
+      "acquiredDisposed": "D",
+      "sharesOwnedAfter": 0,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": 23.34,
+      "exerciseDate": null,
+      "expirationDate": "2028-01-20",
+      "underlyingSecurityTitle": "Common Stock",
+      "underlyingShares": 303960630,
+      "footnotes": {
+        "F1": "Represents shares of restricted stock underlying exercise of a performance-based stock option award to purchase shares of common stock of Tesla, Inc. (the \"Company\" and such award, the \"Award\") in accordance with an implementation agreement, dated April 21, 2026 (the \"Implementation Agreement\") between the Company and the Reporting Person. The Reporting Person delivered notice of the intended exercise date and method to the Company on June 9, 2026 in accordance with the five business day notice period pursuant to the Implementation Agreement. The shares of restricted stock are scheduled to vest on January 19, 2028, subject to the Reporting Person's satisfaction of a service-based vesting condition.",
+        "F5": "On January 21, 2018, the Reporting Person was granted the Award, which was originally in respect of 20,264,042 shares of common stock of the Company at an exercise price of $350.02, by the Company's board of directors, subject to shareholder approval of the Award. The Company's shareholders approved the Award on March 21, 2018. The Award was adjusted to give effect to a five-for-one forward split of the Company's common stock in the form of a stock dividend distributed on August 28, 2020 and a three-for-one forward split of the Company's common stock in the form of a stock dividend distributed on August 24, 2022. The Award's split-adjusted exercise price is $23.34. The shares vested in twelve equal installments upon the achievement of performance milestones that were based on operational and market capitalization metrics."
+      }
+    }
+  ]
 }

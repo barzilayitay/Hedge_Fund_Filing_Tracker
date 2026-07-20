@@ -1,4 +1,44 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4",
+  "periodOfReport": "2026-06-11",
+  "issuerCik": "0000789019",
+  "issuerName": "MICROSOFT CORP",
+  "issuerTicker": "MSFT",
+  "ownerCount": 1,
+  "ownerCiks": [
+    "0001795429"
+  ],
+  "transactionCount": 1,
+  "holdingsSkipped": 1,
+  "is10b5One": false,
+  "distinctCodes": [
+    "A"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0001795429",
+      "tableType": "deriv",
+      "rowIndex": 0,
+      "securityTitle": "Restricted Stock Units",
+      "transactionCode": "A",
+      "transactionDate": "2026-06-11",
+      "shares": 2.935,
+      "price": 0,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 1262.609,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": "Common Stock",
+      "underlyingShares": 2.935,
+      "footnotes": {
+        "F1": "Each restricted stock unit represents a contingent right to receive one share of Microsoft common stock.",
+        "F2": "Dividend equivalent rights accrue when and as dividends are paid on the Company's common stock and become exercisable proportionately with the restricted stock units to which they relate.",
+        "F3": "The restricted stock units are fully vested. Delivery of the shares to the reporting person will be made on the 5th anniversary after the date of the reporting person's separation from service to the Board of Directors."
+      }
+    }
+  ]
 }

@@ -1,4 +1,52 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4",
+  "periodOfReport": "2025-12-24",
+  "issuerCik": "0000813762",
+  "issuerName": "ICAHN ENTERPRISES L.P.",
+  "issuerTicker": "IEP",
+  "ownerCount": 1,
+  "ownerCiks": [
+    "0000921669"
+  ],
+  "transactionCount": 1,
+  "holdingsSkipped": 0,
+  "is10b5One": false,
+  "distinctCodes": [
+    "J"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0000921669",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Depositary Units",
+      "transactionCode": "J",
+      "transactionDate": "2025-12-24",
+      "shares": 30467595,
+      "price": 7.6956,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 549400539,
+      "directIndirect": "I",
+      "natureOfOwnership": "Please see footnotes",
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F1": "Depository Units representing limited partner interests in Icahn Enterprises L.P. (the \"Issuer\").",
+        "F2": "Comprised of Depositary Units held indirectly through CCI Onshore LLC (\"CCI Onshore\"), Gascon Partners (\"Gascon\"), High Coast Limited Partnership (\"High Coast\"), Highcrest Investors LLC (\"Highcrest\") and Thornwood Associates Limited Partnership (\"Thornwood\").",
+        "F3": "Represents the date on which dividend amounts are determined based on the election of each holder and the volume weighted average trading price of units on NASDAQ during five consecutive trading days following the election date.",
+        "F5": "Mr. Icahn received 30,467,595 Depositary Units as a payment-in-kind dividend on 518,932,944 Depositary Units owned on the dividend record date in a transaction exempt from Section 16(b) liability pursuant to Rule 16(b)-3(d) promulgated under the Securities Exchange Act of 1934, as amended.",
+        "F4": "Represents the amount foregone in exchange for each Depository Unit received as a dividend.",
+        "F6": "CCI Onshore beneficially owns 117,383,187 Depository Units. High Coast is the sole member of CCI Onshore. Little Meadow Corp. (\"Little Meadow\") is the general partner of High Coast. Carl C. Icahn beneficially owns 100% of Little Meadow. Pursuant to Rule 16a-1(a)(2) under the Exchange Act, each of Mr. Icahn, Little Meadow and High Coast (by virtue of their relationships to CCI Onshore) may be deemed to indirectly beneficially own the Depository Units which CCI Onshore owns. Each of Mr. Icahn, Little Meadow and High Coast disclaims beneficial ownership of such Depository Units except to the extent of their pecuniary interest therein.",
+        "F7": "Gascon beneficially owns 75,520,523 Depository Units. Little Meadow is the managing general partner of Gascon. Carl C. Icahn beneficially owns 100% of Little Meadow. Pursuant to Rule 16a-1(a)(2) under the Exchange Act, each of Mr. Icahn and Little Meadow (by virtue of their relationships to Gascon) may be deemed to indirectly beneficially own the Depository Units which Gascon owns. Each of Mr. Icahn and Little Meadow disclaims beneficial ownership of such Depository Units except to the extent of their pecuniary interest therein.",
+        "F8": "High Coast beneficially owns 275,301,323 Depository Units. Little Meadow is the general partner of High Coast. Carl C. Icahn beneficially owns 100% of Little Meadow. Pursuant to Rule 16a-1(a)(2) under the Exchange Act, each of Mr. Icahn and Little Meadow (by virtue of their relationships to High Coast) may be deemed to indirectly beneficially own the Depository Units which High Coast owns. Each of Mr. Icahn and Little Meadow disclaims beneficial ownership of such Depository Units except to the extent of their pecuniary interest therein.",
+        "F9": "Highcrest beneficially owns 60,686,991 Depository Units. Starfire Holding Corporation (\"Starfire\") beneficially owns 100% of Highcrest. Carl C. Icahn beneficially owns 100% of Starfire. Pursuant to Rule 16a-1(a)(2) under the Exchange Act, each of Mr. Icahn and Starfire (by virtue of their relationships to Highcrest) may be deemed to indirectly beneficially own the Depository Units which Highcrest owns. Each of Mr. Icahn and Starfire disclaims beneficial ownership of such Depository Units except to the extent of their pecuniary interest therein.",
+        "F10": "Thornwood beneficially owns 20,508,515 Depository Units. Barberry Corp. (\"Barberry\") is the general partner of Thornwood. Carl C. Icahn beneficially owns 100% of Barberry. Pursuant to Rule 16a-1(a)(2) under the Exchange Act, each of Mr. Icahn and Barberry (by virtue of their relationships to Thornwood) may be deemed to indirectly beneficially own the Depository Units which Thornwood owns. Each of Mr. Icahn and Barberry disclaims beneficial ownership of such Depository Units except to the extent of their pecuniary interest therein.",
+        "F11": "Mr. Icahn may be deemed to indirectly beneficially own the 17,704 Depository Units owned by Gail Golden, his wife, which are not included in the total reported in column 5. Mr. Icahn disclaims beneficial ownership of such Depositary Units for all purposes."
+      }
+    }
+  ]
 }

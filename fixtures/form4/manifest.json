@@ -1,0 +1,355 @@
+[
+  {
+    "label": "aapl-insider-1-2026-06-17",
+    "issuerCik": "0000320193",
+    "accession": "0001140361-26-025622",
+    "formType": "4",
+    "filedAt": "2026-06-17",
+    "periodOfReport": "2026-06-15",
+    "ownerCiks": [
+      "0001780525"
+    ],
+    "note": "Apple Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "aapl-insider-2-2026-06-17",
+    "issuerCik": "0000320193",
+    "accession": "0001140361-26-025620",
+    "formType": "4",
+    "filedAt": "2026-06-17",
+    "periodOfReport": "2026-06-15",
+    "ownerCiks": [
+      "0002100523"
+    ],
+    "note": "Apple Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "aapl-insider-3-2026-05-29",
+    "issuerCik": "0000320193",
+    "accession": "0001140361-26-023363",
+    "formType": "4",
+    "filedAt": "2026-05-29",
+    "periodOfReport": "2026-05-27",
+    "ownerCiks": [
+      "0001214128"
+    ],
+    "note": "Apple Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "aapl-insider-4-2026-05-12",
+    "issuerCik": "0000320193",
+    "accession": "0001140361-26-020871",
+    "formType": "4",
+    "filedAt": "2026-05-12",
+    "periodOfReport": "2026-05-08",
+    "ownerCiks": [
+      "0002100523"
+    ],
+    "note": "Apple Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "aapl-insider-5-2026-05-08",
+    "issuerCik": "0000320193",
+    "accession": "0001140361-26-020298",
+    "formType": "4",
+    "filedAt": "2026-05-08",
+    "periodOfReport": "2026-05-06",
+    "ownerCiks": [
+      "0001214128"
+    ],
+    "note": "Apple Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "aapl-insider-6-2026-04-27",
+    "issuerCik": "0000320193",
+    "accession": "0001140361-26-017175",
+    "formType": "4",
+    "filedAt": "2026-04-27",
+    "periodOfReport": "2026-04-23",
+    "ownerCiks": [
+      "0002050912"
+    ],
+    "note": "Apple Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "aapl-insider-7-2026-04-17",
+    "issuerCik": "0000320193",
+    "accession": "0001140361-26-015421",
+    "formType": "4",
+    "filedAt": "2026-04-17",
+    "periodOfReport": "2026-04-15",
+    "ownerCiks": [
+      "0002100523"
+    ],
+    "note": "Apple Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "aapl-insider-8-2026-04-17",
+    "issuerCik": "0000320193",
+    "accession": "0001140361-26-015420",
+    "formType": "4",
+    "filedAt": "2026-04-17",
+    "periodOfReport": "2026-04-15",
+    "ownerCiks": [
+      "0002050912"
+    ],
+    "note": "Apple Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "icahn-entity-1-2026-06-29",
+    "issuerCik": "0000813762",
+    "accession": "0001539497-26-001889",
+    "formType": "4",
+    "filedAt": "2026-06-29",
+    "periodOfReport": "2026-06-25",
+    "ownerCiks": [
+      "0000921669"
+    ],
+    "note": "ICAHN ENTERPRISES L.P. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "icahn-entity-2-2026-04-17",
+    "issuerCik": "0000813762",
+    "accession": "0001539497-26-001146",
+    "formType": "4",
+    "filedAt": "2026-04-17",
+    "periodOfReport": "2026-04-15",
+    "ownerCiks": [
+      "0000921669"
+    ],
+    "note": "ICAHN ENTERPRISES L.P. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "icahn-entity-3-2025-12-29",
+    "issuerCik": "0000813762",
+    "accession": "0001539497-25-003356",
+    "formType": "4",
+    "filedAt": "2025-12-29",
+    "periodOfReport": "2025-12-24",
+    "ownerCiks": [
+      "0000921669"
+    ],
+    "note": "ICAHN ENTERPRISES L.P. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "icahn-entity-4-2025-09-26",
+    "issuerCik": "0000813762",
+    "accession": "0001539497-25-002519",
+    "formType": "4",
+    "filedAt": "2025-09-26",
+    "periodOfReport": "2025-09-24",
+    "ownerCiks": [
+      "0000921669"
+    ],
+    "note": "ICAHN ENTERPRISES L.P. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "jpm-insider-1-2026-07-08",
+    "issuerCik": "0000019617",
+    "accession": "0001225208-26-006542",
+    "formType": "4",
+    "filedAt": "2026-07-08",
+    "periodOfReport": "2026-06-25",
+    "ownerCiks": [
+      "0001566079"
+    ],
+    "note": "JPMORGAN CHASE & CO Form 4 (1 owner(s))"
+  },
+  {
+    "label": "jpm-insider-2-2026-07-01",
+    "issuerCik": "0000019617",
+    "accession": "0001225208-26-006278",
+    "formType": "4",
+    "filedAt": "2026-07-01",
+    "periodOfReport": "2026-06-30",
+    "ownerCiks": [
+      "0001333712"
+    ],
+    "note": "JPMORGAN CHASE & CO Form 4 (1 owner(s))"
+  },
+  {
+    "label": "jpm-insider-3-2026-07-01",
+    "issuerCik": "0000019617",
+    "accession": "0001225208-26-006277",
+    "formType": "4",
+    "filedAt": "2026-07-01",
+    "periodOfReport": "2026-06-30",
+    "ownerCiks": [
+      "0001222195"
+    ],
+    "note": "JPMORGAN CHASE & CO Form 4 (1 owner(s))"
+  },
+  {
+    "label": "jpm-insider-4-2026-07-01",
+    "issuerCik": "0000019617",
+    "accession": "0001225208-26-006276",
+    "formType": "4",
+    "filedAt": "2026-07-01",
+    "periodOfReport": "2026-06-30",
+    "ownerCiks": [
+      "0001169896"
+    ],
+    "note": "JPMORGAN CHASE & CO Form 4 (1 owner(s))"
+  },
+  {
+    "label": "msft-insider-1-2026-07-01",
+    "issuerCik": "0000789019",
+    "accession": "0000789019-26-000137",
+    "formType": "4",
+    "filedAt": "2026-07-01",
+    "periodOfReport": "2026-07-01",
+    "ownerCiks": [
+      "0001626431"
+    ],
+    "note": "MICROSOFT CORP Form 4 (1 owner(s))"
+  },
+  {
+    "label": "msft-insider-2-2026-06-16",
+    "issuerCik": "0000789019",
+    "accession": "0000789019-26-000135",
+    "formType": "4",
+    "filedAt": "2026-06-16",
+    "periodOfReport": "2026-06-15",
+    "ownerCiks": [
+      "0001819285"
+    ],
+    "note": "MICROSOFT CORP Form 4 (1 owner(s))"
+  },
+  {
+    "label": "msft-insider-3-2026-06-15",
+    "issuerCik": "0000789019",
+    "accession": "0000789019-26-000133",
+    "formType": "4",
+    "filedAt": "2026-06-15",
+    "periodOfReport": "2026-06-15",
+    "ownerCiks": [
+      "0002062356"
+    ],
+    "note": "MICROSOFT CORP Form 4 (1 owner(s))"
+  },
+  {
+    "label": "msft-insider-4-2026-06-12",
+    "issuerCik": "0000789019",
+    "accession": "0000789019-26-000131",
+    "formType": "4",
+    "filedAt": "2026-06-12",
+    "periodOfReport": "2026-06-11",
+    "ownerCiks": [
+      "0001795429"
+    ],
+    "note": "MICROSOFT CORP Form 4 (1 owner(s))"
+  },
+  {
+    "label": "psh-entity-2026-06-08",
+    "issuerCik": "0001981792",
+    "accession": "0001140361-26-024482",
+    "formType": "4",
+    "filedAt": "2026-06-08",
+    "periodOfReport": "2026-06-04",
+    "ownerCiks": [
+      "0001336528",
+      "0002131683",
+      "0002026053",
+      "0002129159",
+      "0002027456",
+      "0001056513"
+    ],
+    "note": "Howard Hughes Holdings Inc. Form 4 (6 owner(s))"
+  },
+  {
+    "label": "purchase-bankwell-2026-02-26",
+    "issuerCik": "0001505732",
+    "accession": "0001026081-26-000010",
+    "formType": "4/A",
+    "filedAt": "2026-02-26",
+    "periodOfReport": "2026-02-23",
+    "ownerCiks": [
+      "0001026081"
+    ],
+    "note": "Bankwell Financial Group, Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "purchase-enterprise-2026-03-23",
+    "issuerCik": "0001061219",
+    "accession": "0001183251-26-000006",
+    "formType": "4",
+    "filedAt": "2026-03-23",
+    "periodOfReport": "2026-03-20",
+    "ownerCiks": [
+      "0001183251"
+    ],
+    "note": "ENTERPRISE PRODUCTS PARTNERS L.P. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "tsla-insider-1-2026-06-17",
+    "issuerCik": "0001318605",
+    "accession": "0001104659-26-075213",
+    "formType": "4",
+    "filedAt": "2026-06-17",
+    "periodOfReport": "2026-06-16",
+    "ownerCiks": [
+      "0001494730"
+    ],
+    "note": "Tesla, Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "tsla-insider-2-2026-06-09",
+    "issuerCik": "0001318605",
+    "accession": "0001104659-26-071970",
+    "formType": "4",
+    "filedAt": "2026-06-09",
+    "periodOfReport": "2026-06-05",
+    "ownerCiks": [
+      "0001771340"
+    ],
+    "note": "Tesla, Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "tsla-insider-3-2026-05-15",
+    "issuerCik": "0001318605",
+    "accession": "0001104659-26-062860",
+    "formType": "4",
+    "filedAt": "2026-05-15",
+    "periodOfReport": "2026-05-13",
+    "ownerCiks": [
+      "0001771340"
+    ],
+    "note": "Tesla, Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "tsla-insider-4-2026-05-04",
+    "issuerCik": "0001318605",
+    "accession": "0001104659-26-055079",
+    "formType": "4",
+    "filedAt": "2026-05-04",
+    "periodOfReport": "2026-04-30",
+    "ownerCiks": [
+      "0001331680"
+    ],
+    "note": "Tesla, Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "tsla-insider-5-2026-04-23",
+    "issuerCik": "0001318605",
+    "accession": "0001104659-26-047678",
+    "formType": "4",
+    "filedAt": "2026-04-23",
+    "periodOfReport": "2026-04-21",
+    "ownerCiks": [
+      "0001494730"
+    ],
+    "note": "Tesla, Inc. Form 4 (1 owner(s))"
+  },
+  {
+    "label": "tsla-insider-6-2026-04-02",
+    "issuerCik": "0001318605",
+    "accession": "0001972928-26-000002",
+    "formType": "4",
+    "filedAt": "2026-04-02",
+    "periodOfReport": "2026-03-31",
+    "ownerCiks": [
+      "0001972928"
+    ],
+    "note": "Tesla, Inc. Form 4 (1 owner(s))"
+  }
+]

@@ -1,4 +1,65 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4/A",
+  "periodOfReport": "2026-02-23",
+  "issuerCik": "0001505732",
+  "issuerName": "Bankwell Financial Group, Inc.",
+  "issuerTicker": "BWFG",
+  "ownerCount": 1,
+  "ownerCiks": [
+    "0001026081"
+  ],
+  "transactionCount": 6,
+  "holdingsSkipped": 6,
+  "is10b5One": false,
+  "distinctCodes": [
+    "P"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0001026081",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Common Stock",
+      "transactionCode": "P",
+      "transactionDate": "2026-02-23",
+      "shares": 4068,
+      "price": 47.39,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 199219,
+      "directIndirect": "I",
+      "natureOfOwnership": "By Seidman and Associates, L.L.C.",
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F1": "On the originally filed Form 4 on February 24, 2026, Field 3 in Table I (transaction code) inadvertently had a code \"S\", which represents an \"open market or private sale of non-derivative or derivative security\".  This field should have been coded \"P\", which represents \"open market or private purchase of non-derivative or derivative security\"."
+      }
+    },
+    {
+      "ownerCik": "0001026081",
+      "tableType": "nonderiv",
+      "rowIndex": 1,
+      "securityTitle": "Common Stock",
+      "transactionCode": "P",
+      "transactionDate": "2026-02-23",
+      "shares": 1261,
+      "price": 47.4,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 134849,
+      "directIndirect": "I",
+      "natureOfOwnership": "By Seidman Investment Partnership, L.P.",
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F1": "On the originally filed Form 4 on February 24, 2026, Field 3 in Table I (transaction code) inadvertently had a code \"S\", which represents an \"open market or private sale of non-derivative or derivative security\".  This field should have been coded \"P\", which represents \"open market or private purchase of non-derivative or derivative security\"."
+      }
+    }
+  ]
 }

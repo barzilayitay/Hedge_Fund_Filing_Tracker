@@ -11,7 +11,7 @@ Human: read it before every gate review.
 | 0 — Foundation | AWAITING GATE | phase-0 | — |
 | 1 — 13F ingestion | AWAITING GATE | phase-1 | — |
 | 2 — Analytics | AWAITING GATE | phase-2 | PASS 2026-07-18 |
-| 3 — Form 4 ingestion | NOT STARTED | — | — |
+| 3 — Form 4 ingestion | AWAITING GATE | phase-3 | PASS 2026-07-19 |
 | 4 — API | NOT STARTED | — | — |
 | 5 — Frontend | NOT STARTED | — | — |
 | 6 — Ops / scheduling | NOT STARTED | — | — |
@@ -20,6 +20,106 @@ Human: read it before every gate review.
 Statuses: NOT STARTED / IN PROGRESS / BLOCKED / AWAITING GATE / DONE
 
 ## Current phase notes
+
+### Phase 3 — Form 4 ingestion
+
+**Delivered:**
+1. **Migration** `supabase/migrations/20260719120000_form4_schema.sql`:
+   - `insiders`, `insider_relationships`, `form4_transactions` (footnotes as
+     jsonb keyed by footnote id; derivative columns for underlying/conversion/
+     exercise/expiry), plus a **`ownership_13dg` stub** table for the 13D/G feed
+     a later phase fills (spec: "stub the table, fill later").
+   - **Shared `filings` table fixes** (both prior gate reviews flagged this):
+     dropped the 13F-only `filings_cik_fkey` (Form 4's grouping CIK is its
+     issuer, not a 13F filer — disjoint CIK universes), and re-scoped the
+     `filings_amendment_type_only_on_amendment` check so the 13F invariant is
+     unchanged for 13F but every non-13F filing must leave `amendment_type`
+     null. See Decisions 1–2.
+   - **Derived views:** `insider_cluster_buys` (≥3 distinct insiders, code P,
+     rolling 30-day window; value = Σ shares×price), `insider_sentiment`
+     (trailing-90-day P/S measured from each company's latest transaction so it
+     is deterministic; 10b5-1 sales split out of the bearish count and net),
+     `fund_realtime_activity` (form4_transactions ⋈ filers on owner cik).
+2. **Parser** `lib/edgar/parseForm4.ts` (+ `schemasForm4.ts`), pure
+   `(xml, ref) => ParsedForm4`. Joint filings fan out to one row per (owner,
+   transaction); nonDeriv + deriv tables; holdings-only rows skipped-but-counted;
+   footnote refs resolved to text per row; **null-vs-0 price discipline** (a $0
+   award keeps 0; a footnoted/absent amount is null, never 0); entity vs person
+   owners; `aff10b5One` applied to every emitted row.
+3. **Loader** `lib/edgar/loadForm4.ts`: replace-per-accession (upsert on
+   `(accession_no, insider_cik, table_type, row_index)`, then delete leftovers),
+   idempotent; ensures insiders/relationships/filing rows first. filings.cik is
+   the issuer for a Form 4.
+4. **Fixtures reused, not re-fetched.** The 29 Phase-0 Form 4 XML docs already
+   cover every required code (P, S, M, A, G — plus F, J, D), derivative tables
+   with underlying+expiry (tsla-insider-6), 10b5-1 (aapl-2/4/6, tsla-4), and a
+   6-owner joint entity filing (psh-entity, on Howard Hughes) whose owner
+   Pershing Square Capital Management (CIK 1336528) matches the 13F Pershing
+   filer. `scripts/build-form4-expected.ts` filled all 29 `*.expected.json`
+   (counts derived by an **independent regex scan** and cross-checked against
+   the parser at generation time, so a counting bug can't be baked in; 2
+   full-field spot-checks each).
+5. **Pinned fetcher** `scripts/fetch-form4-fixtures.ts` (uses only
+   `lib/edgar/client.ts`; loads `.env`; refuses a placeholder contact email) and
+   **`scripts/fetch-fixtures.ts` DELETED** (its 13F half clobbered pinned
+   fixtures and rolled its own rate limiter; its Form 4 half is replaced).
+6. **Tests** `tests/phase3/` — parser (per-fixture + spec-critical hand
+   assertions), loader (idempotency, leftover cleanup, 13F-view non-
+   contamination), views (synthetic 3-vs-2 insider cluster + >30-day negative,
+   sentiment 10b5-1 split, fund_realtime_activity), and the manifest **GATE**.
+
+**Acceptance criteria verification:**
+- `npm run typecheck` ✅. `npm run lint` ✅. `npm run test` → **240 pass** (at
+  build time 239 pass / 1 fail on the placeholder GATE; `fb3dd69` pinned the
+  real accessions and the GATE is now green — see below).
+- Every Form 4 fixture parses; counts + spot checks match expected.
+- Codes P/S/M/A/G each verified; derivative fixture yields underlying + real
+  expiry (2028-08-20) + conversion price (20.57); 10b5-1 row has is_10b5_1=true;
+  entity-owner psh links to the `filers` row and appears in
+  `fund_realtime_activity`; synthetic 3-insider cluster appears, 2-insider does
+  not, and 3 insiders spanning >30 days does not; double-load is byte-identical.
+- **`npx supabase db reset` verified at the gate (2026-07-19).** The build
+  session could not run it (Docker was down); the gate reviewer ran it with
+  Docker up and the CLAUDE.md `-x` exclusions — **all four migrations
+  (`init`, `13f_schema`, `analytics`, `form4_schema`) apply cleanly on real
+  Postgres**, the first real-Postgres application of the dropped FK and the
+  re-scoped amendment-type check. The acceptance tests also run the real
+  migration files against embedded Postgres (PGlite).
+
+**The placeholder GATE — CLEARED (commit `fb3dd69`).** Phase 0 fetched the Form
+4 XML without recording accession numbers, so the build session shipped
+`fixtures/form4/manifest.json` with **placeholder accessions**
+(`9999999999-99-…`, flagged `placeholder: true`) and a **GATE test in
+`tests/phase3/manifest.test.ts` that failed while any placeholder remained**.
+`npm run fixtures:form4` was subsequently run (network, EDGAR) to pin the real
+accessions; commit `fb3dd69` ("Re-pin Form 4 fixtures with real accessions")
+committed the resulting manifest. The manifest now holds only real accessions,
+the GATE test is **green**, and the full suite passes with no placeholders
+remaining. Do not re-introduce placeholders or weaken the gate.
+
+**Gate review — PASS (2026-07-19):** all five checks green — `npm run
+typecheck`, `npm run lint`, `npm run test` (240/240, placeholder GATE cleared),
+`npm run build`, and `npx supabase db reset` (all four migrations on real
+Postgres, first verification of the Form 4 migration). Every acceptance
+criterion maps to a passing test; the shared-`filings` re-scoping was proven
+safe in both directions (13F read paths all filter `form_type`; Form 4 views
+read `form4_transactions` only — the `loadForm4` "does not contaminate the 13F
+aggregation view" test proves it); three fixtures (a derivative, a joint
+6-owner, a 10b5-1) were hand-verified against the raw XML. Verdicts on flagged
+items:
+- **Form 4/A supersession deferral — accept-with-spec-amendment.** Ratified;
+  the binding rule + Phase 6 pre-go-live BLOCKER are now recorded in the spec
+  (Implementation notes + As-built notes). Reason it matters: an original + its
+  4/A double-count in `insider_cluster_buys` / `insider_sentiment` until it
+  lands.
+- **Dropped `filings.cik → filers` FK — accept-with-note.** Integrity is
+  loader-enforced for 13F rows; follow-up is a trigger-based guard in Phase 4/6.
+- **Joint P/S multi-count in cluster AND sentiment — accept-with-note.**
+  Decision 6 extended in the spec; revisit when a real joint P/S fixture exists.
+- **Null-price coalesced to 0 in value sums — accept** (documented
+  understatement; no `AVG` in the Form 4 views).
+- **Replace-per-accession, `ownership_13dg` stub inertness, no dead
+  code/secrets — accept.**
 
 ### Phase 2 — Derived analytics
 
@@ -228,6 +328,58 @@ semantics under test are the same SQL that ships to Supabase.
 
 ## Decisions
 
+### Phase 3
+
+1. **Dropped `filings_cik_fkey` (filings.cik → filers.cik).** The shared
+   `filings` table must hold Form 4 rows (ARCHITECTURE + both gate reviews). A
+   Form 4's natural grouping CIK is its **issuer** (e.g. Apple 320193), which is
+   not a 13F filer, so the FK to `filers` cannot hold across both form types.
+   `filings.cik` is now an unconstrained CIK meaning "the CIK the filing is
+   grouped under": the 13F manager for 13F, the issuer for Form 4. The loader
+   still inserts the filer/issuer row first, so integrity is maintained in
+   practice. *Rejected:* putting issuers into `filers` (pollutes the 13F fund
+   list — Phase 5 would show Apple as a fund); a separate `form4_filings` table
+   (contradicts ARCHITECTURE's "one row per SEC filing, both 13F and Form 4" and
+   the amendment machinery reuse).
+
+2. **Re-scoped `filings_amendment_type_only_on_amendment` to 13F.** The check
+   `(form_type like '%/A') = (amendment_type is not null)` plus
+   `amendment_type in ('RESTATEMENT','NEW HOLDINGS')` is a 13F invariant; a Form
+   4/A carries neither type. One fixture (`purchase-bankwell`) is a real 4/A, so
+   this bit immediately. The constraint now enforces the original rule for
+   `13F-HR%` forms and requires `amendment_type is null` for everything else.
+
+3. **Form 4/A supersession is deferred (documented, not silent).** The spec
+   says "supersede by accession linkage same as Phase 1 pattern", but the only
+   4/A fixture has no original in the set to supersede, and no acceptance
+   criterion exercises it. The 4/A loads as a normal filing (form_type '4/A',
+   is_superseded false); building/reconciling Form 4 amendment chains is left to
+   the phase that needs it. Recorded in the spec's As-built notes.
+
+4. **Voting authority (13F) stays deferred — Phase 3 does not need it.** The
+   Phase 2 note tagged "candidate: Phase 3+ governance/ownership views". No
+   Phase 3 output touches 13F voting authority (everything derives from Form 4
+   XML), so the Phase 1 schema/parser were **not** touched. Still recoverable
+   later from the raw `<votingAuthority>` if a governance overlay needs it.
+
+5. **`insider_sentiment` "trailing 90 days" is measured from each company's
+   most recent transaction (`as_of`), not wall-clock `now()`.** A view keyed on
+   `now()` would be non-deterministic and would empty out as fixtures age past
+   90 days. Per-company `as_of` makes the view a deterministic "sentiment as of
+   latest activity". Documented in the migration.
+
+6. **`insider_cluster_buys` emits one candidate window per code-P anchor date.**
+   Overlapping windows are expected (spec asks only to "expose window start/
+   end"). A joint P filing would count each owner as a distinct insider — a
+   possible false positive that follows the spec's "one row per (owner,
+   transaction)" fan-out; no fixture triggers it (the joint filing is code A).
+
+7. **Form 4 fixture manifest shipped with placeholder accessions + a GATE test
+   — now CLEARED.** At build time the manifest held placeholders and the suite
+   stayed red by design. `npm run fixtures:form4` was run and `fb3dd69`
+   committed the real, pinned accessions; the GATE test is green. See the
+   Phase 3 phase notes.
+
 ### Phase 2
 
 1. **`holdings_13f_agg` omits voting authority.** The AMENDMENT's aggregation
@@ -400,6 +552,39 @@ semantics under test are the same SQL that ships to Supabase.
 
 ## Open questions for the human
 
+### Phase 3 (post-gate follow-ups, tagged by phase)
+
+Gate review PASSED 2026-07-19. The GATE is cleared (`fb3dd69` pinned real
+accessions) and `npx supabase db reset` was verified. The items below are the
+accepted, non-blocking follow-ups carried forward to the phase that owns them.
+
+1. **[→ Phase 6 PRE-GO-LIVE BLOCKER] Form 4/A supersession** (Decision 3). The
+   one 4/A fixture (`purchase-bankwell`) loads standalone. Until supersession is
+   implemented, ingesting an original Form 4 **and** its 4/A double-counts the
+   amended transactions in `insider_cluster_buys` and `insider_sentiment`, so
+   the live poller MUST NOT go live before it lands. Binding rule (now in the
+   spec): link a 4/A to its original by `(issuer_cik, owner_cik,
+   period_of_report)` and mark the original `is_superseded`, mirroring the
+   Phase 1 `reconcilePeriod` pattern.
+
+2. **[→ Phase 4/6] `filings.cik → filers.cik` FK was dropped** (Decision 1) to
+   let Form 4 rows share `filings`. Integrity for 13F rows is loader-enforced
+   only. Follow-up: add a trigger-based guard for `form_type LIKE '13F-HR%'`
+   rows when the production `Sql` path lands.
+
+3. **[→ revisit when a real fixture exists] Joint P/S multi-count.** Joint
+   filings fan out to one row per owner×transaction; a joint P/S filing would
+   count each owner as a distinct insider and sum its value once per owner in
+   BOTH `insider_cluster_buys` and `insider_sentiment` (Decision 6 note now
+   extended to both views in the spec). No current fixture triggers it (the
+   joint `psh-entity` filing is code A). Resolve when a real joint P/S fixture
+   is added.
+
+4. **[→ Phase for 13D/G] `fund_realtime_activity` currently covers Form 4
+   only.** ARCHITECTURE overlays "Form 4 + 13D/G"; the `ownership_13dg` table is
+   an inert stub, so the view unions in nothing yet. 13D/G parsing was
+   explicitly out of Phase 3 scope.
+
 ### Phase 2 (for the gate review)
 
 1. **Voting authority is not aggregated** (Decision 1) — it was never captured
@@ -489,13 +674,19 @@ semantics under test are the same SQL that ships to Supabase.
   postcss.config.mjs was deleted. Re-add in Phase 5 if the frontend
   design calls for Tailwind.
 - The `postcss.config.mjs` from the Next.js scaffold was removed as unused.
-- **`scripts/fetch-fixtures.ts` (Phase 0, `npm run fixtures`) is now partly
-  superseded and should not be re-run for 13F.** It resolves "the N most recent
-  13F-HR", which moves over time, so re-running it would replace the pinned
-  fixtures and invalidate every verified `expected.json`. Its 13F half also
-  rolls its own rate limiter, which violates hard rule 1 (only
-  `lib/edgar/client.ts` may call EDGAR). `npm run fixtures:13f` replaces it for
-  13F; the Form 4 half should be given the same treatment in Phase 3.
+- ~~**`scripts/fetch-fixtures.ts` (Phase 0, `npm run fixtures`) is now partly
+  superseded**~~ **DELETED in Phase 3.** Its 13F half clobbered pinned fixtures
+  and rolled its own rate limiter (hard rule 1); its Form 4 half is replaced by
+  `scripts/fetch-form4-fixtures.ts` (`npm run fixtures:form4`), which uses
+  `lib/edgar/client.ts` only and re-pins the existing on-disk fixtures rather
+  than re-downloading "most recent". `npm run fixtures:13f` already replaced it
+  for 13F.
+- ~~**Form 4 fixture manifest ships with placeholder accessions.**~~
+  **RESOLVED (`fb3dd69`).** Phase 0 never recorded the Form 4 accessions and the
+  build session had no EDGAR access, so the manifest shipped with placeholders
+  and `tests/phase3/manifest.test.ts` (the GATE) failed by design — the single
+  expected red. `npm run fixtures:form4` has since pinned the real accessions;
+  the manifest is clean and the GATE is green.
 - The 13(f) securities list filename pins `2026q1`; refreshing it quarterly is
   unhandled (see open question 3).
 - `createOpenFigiClient` has never run against the live API (open question 4).

@@ -1,4 +1,76 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4",
+  "periodOfReport": "2026-06-04",
+  "issuerCik": "0001981792",
+  "issuerName": "Howard Hughes Holdings Inc.",
+  "issuerTicker": "HHH",
+  "ownerCount": 6,
+  "ownerCiks": [
+    "0001336528",
+    "0002131683",
+    "0002026053",
+    "0002129159",
+    "0002027456",
+    "0001056513"
+  ],
+  "transactionCount": 6,
+  "holdingsSkipped": 4,
+  "is10b5One": false,
+  "distinctCodes": [
+    "A"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0001336528",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Series A Non-Voting Exchangeable Perpetual Preferred Stock",
+      "transactionCode": "A",
+      "transactionDate": "2026-06-04",
+      "shares": 140000,
+      "price": 7142.8571,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 140000,
+      "directIndirect": "I",
+      "natureOfOwnership": "See footnotes",
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F3": "In connection with the completion of the acquisition of Vantage Group Holdings Ltd. by the Issuer on June 4, 2026, PSH acquired 140,000 shares of the Issuer's Series A Non-Voting Exchangeable Perpetual Preferred Stock, par value $0.01 per share, for an aggregate purchase price of approximately $1.0 billion, pursuant to the Subscription Agreement, dated as of June 4, 2026, by and between Howard Hughes Insurance Holdings, LLC, PSH and the Issuer, as described in greater detail in the Issuer's Form 8-K filed on June 5, 2026.",
+        "F1": "In addition to Pershing Square Capital Management, L.P., a Delaware limited partnership (\"PSCM\"), this Form 4 is being filed jointly by Pershing Square HHH Holdings, LLC, a Nevada limited liability company (\"HHH Holdings\"), Pershing Square Inc., a Nevada corporation (\"PS Inc.\"), Pershing Square Management, LLC, a Delaware limited liability company (\"ManagementCo\"), Pershing Square Partner Group, LLC, a Delaware limited liability company (\"PSPG\"), and William A. Ackman, a citizen of the United States of America (collectively, the \"Reporting Persons\"), each of whom has the same business address as PSCM and may be deemed to beneficially own the securities of the Issuer reported on this Form 4 (the \"Subject Securities\").",
+        "F2": "PSCM advises the accounts of Pershing Square, L.P., a Delaware limited partnership (\"PSLP\"), Pershing Square International, Ltd., a Cayman Islands exempted company (\"PSI\"), and Pershing Square Holdings, Ltd., a limited liability company incorporated in Guernsey (\"PSH\" and together with PSLP and PSI, the \"Pershing Square Affiliated Funds\") and PS Redemption, L.P., a Delaware limited partnership (\"RedemptionCo\").",
+        "F4": "These Subject Securities are held by PSH through its wholly-owned subsidiaries."
+      }
+    },
+    {
+      "ownerCik": "0002131683",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Series A Non-Voting Exchangeable Perpetual Preferred Stock",
+      "transactionCode": "A",
+      "transactionDate": "2026-06-04",
+      "shares": 140000,
+      "price": 7142.8571,
+      "acquiredDisposed": "A",
+      "sharesOwnedAfter": 140000,
+      "directIndirect": "I",
+      "natureOfOwnership": "See footnotes",
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F3": "In connection with the completion of the acquisition of Vantage Group Holdings Ltd. by the Issuer on June 4, 2026, PSH acquired 140,000 shares of the Issuer's Series A Non-Voting Exchangeable Perpetual Preferred Stock, par value $0.01 per share, for an aggregate purchase price of approximately $1.0 billion, pursuant to the Subscription Agreement, dated as of June 4, 2026, by and between Howard Hughes Insurance Holdings, LLC, PSH and the Issuer, as described in greater detail in the Issuer's Form 8-K filed on June 5, 2026.",
+        "F1": "In addition to Pershing Square Capital Management, L.P., a Delaware limited partnership (\"PSCM\"), this Form 4 is being filed jointly by Pershing Square HHH Holdings, LLC, a Nevada limited liability company (\"HHH Holdings\"), Pershing Square Inc., a Nevada corporation (\"PS Inc.\"), Pershing Square Management, LLC, a Delaware limited liability company (\"ManagementCo\"), Pershing Square Partner Group, LLC, a Delaware limited liability company (\"PSPG\"), and William A. Ackman, a citizen of the United States of America (collectively, the \"Reporting Persons\"), each of whom has the same business address as PSCM and may be deemed to beneficially own the securities of the Issuer reported on this Form 4 (the \"Subject Securities\").",
+        "F2": "PSCM advises the accounts of Pershing Square, L.P., a Delaware limited partnership (\"PSLP\"), Pershing Square International, Ltd., a Cayman Islands exempted company (\"PSI\"), and Pershing Square Holdings, Ltd., a limited liability company incorporated in Guernsey (\"PSH\" and together with PSLP and PSI, the \"Pershing Square Affiliated Funds\") and PS Redemption, L.P., a Delaware limited partnership (\"RedemptionCo\").",
+        "F4": "These Subject Securities are held by PSH through its wholly-owned subsidiaries."
+      }
+    }
+  ]
 }

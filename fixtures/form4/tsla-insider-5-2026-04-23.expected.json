@@ -1,4 +1,43 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4",
+  "periodOfReport": "2026-04-21",
+  "issuerCik": "0001318605",
+  "issuerName": "Tesla, Inc.",
+  "issuerTicker": "TSLA",
+  "ownerCount": 1,
+  "ownerCiks": [
+    "0001494730"
+  ],
+  "transactionCount": 1,
+  "holdingsSkipped": 1,
+  "is10b5One": false,
+  "distinctCodes": [
+    "D"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0001494730",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Common Stock",
+      "transactionCode": "D",
+      "transactionDate": "2026-04-21",
+      "shares": 96000000,
+      "price": 0,
+      "acquiredDisposed": "D",
+      "sharesOwnedAfter": 423743904,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F1": "Represents a forfeiture of the restricted stock award granted pursuant to Tesla, Inc.'s 2019 Equity Incentive Plan on August 3, 2025, as a result of a Tornetta Decision Event (as defined in such restricted stock award).",
+        "F2": "Includes 423,743,904 shares of restricted stock that were granted pursuant to Tesla, Inc.'s 2025 CEO Performance Award in twelve equal tranches and were issued following receipt of all necessary approvals. The shares of restricted stock are subject to a voting agreement, and the Reporting Person has given an irrevocable proxy to the Company's secretary to vote the shares in accordance with the terms of the voting agreement. The earning of each tranche is subject to satisfaction of certain conditions. If earned on or prior to September 3, 2030, the tranches of restricted stock will vest on March 3, 2033, and if earned from September 4, 2030 through September 3, 2035, the tranches of restricted stock will vest on September 3, 2035, in each case subject to satisfaction of certain conditions."
+      }
+    }
+  ]
 }

@@ -11,9 +11,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "fixtures": "tsx scripts/fetch-fixtures.ts",
     "fixtures:13f": "tsx scripts/fetch-13f-fixtures.ts",
-    "fixtures:expected": "tsx scripts/build-expected.ts"
+    "fixtures:form4": "tsx scripts/fetch-form4-fixtures.ts",
+    "fixtures:expected": "tsx scripts/build-expected.ts",
+    "fixtures:form4:expected": "tsx scripts/build-form4-expected.ts"
   },
   "dependencies": {
     "fast-xml-parser": "^5.10.1",

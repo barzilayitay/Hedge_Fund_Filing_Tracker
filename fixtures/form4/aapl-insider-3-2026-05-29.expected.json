@@ -1,4 +1,64 @@
 {
-  "_stub": true,
-  "_note": "Fill in Phase 1/3"
+  "formType": "4",
+  "periodOfReport": "2026-05-27",
+  "issuerCik": "0000320193",
+  "issuerName": "Apple Inc.",
+  "issuerTicker": "AAPL",
+  "ownerCount": 1,
+  "ownerCiks": [
+    "0001214128"
+  ],
+  "transactionCount": 2,
+  "holdingsSkipped": 1,
+  "is10b5One": false,
+  "distinctCodes": [
+    "G",
+    "S"
+  ],
+  "spotChecks": [
+    {
+      "ownerCik": "0001214128",
+      "tableType": "nonderiv",
+      "rowIndex": 0,
+      "securityTitle": "Common Stock",
+      "transactionCode": "S",
+      "transactionDate": "2026-05-27",
+      "shares": 50000,
+      "price": 311.02,
+      "acquiredDisposed": "D",
+      "sharesOwnedAfter": 3764576,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {
+        "F1": "This transaction was executed in multiple trades at prices ranging from $310.76 to $311.42; the price reported above reflects the weighted average sale price. The reporting person hereby undertakes to provide full information regarding the number of shares and prices at which the transactions were effected upon request to the SEC staff, Apple, or a security holder of Apple."
+      }
+    },
+    {
+      "ownerCik": "0001214128",
+      "tableType": "nonderiv",
+      "rowIndex": 1,
+      "securityTitle": "Common Stock",
+      "transactionCode": "G",
+      "transactionDate": "2026-05-27",
+      "shares": 65000,
+      "price": 0,
+      "acquiredDisposed": "D",
+      "sharesOwnedAfter": 3699576,
+      "directIndirect": "D",
+      "natureOfOwnership": null,
+      "is10b5One": false,
+      "conversionOrExercisePrice": null,
+      "exerciseDate": null,
+      "expirationDate": null,
+      "underlyingSecurityTitle": null,
+      "underlyingShares": null,
+      "footnotes": {}
+    }
+  ]
 }
