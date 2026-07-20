@@ -44,6 +44,16 @@ Phase 1 complete (shares `filings`, `companies` tables). Independent of Phase 2.
 - Dates are `<value>` children, not text content of the parent element.
 - Entity owners have `rptOwnerName` but no individual name parts — handle both.
 - Form 4/A amendments: supersede by accession linkage same as Phase 1 pattern.
+  **DEFERRED.** As-built: Form 4/A filings load standalone (form_type '4/A',
+  amendment_type null, is_superseded false). Supersession is deferred because
+  the fixture set contains no original+amendment pair and ownershipDocument has
+  no field linking a 4/A to its original accession. BINDING RULE for the phase
+  that implements it (Phase 6 pre-go-live BLOCKER): link a 4/A to its original
+  by (issuer_cik, owner_cik, period_of_report) and mark the original
+  is_superseded, mirroring the Phase 1 reconcilePeriod pattern. Until
+  implemented, ingesting an original Form 4 and its 4/A double-counts the
+  amended transactions in insider_cluster_buys and insider_sentiment — the live
+  poller MUST NOT go live before this lands.
 
 ## Acceptance criteria (tests in `tests/phase3/`)
 - Every Form 4 fixture parses; counts + spot checks match expected files.
@@ -78,7 +88,28 @@ These reflect the shipped implementation and accepted deviations. See
 - **Form 4/A supersession is deferred.** The one 4/A fixture
   (`purchase-bankwell`) has no matching original in the set and no acceptance
   criterion exercises supersession, so it loads as an ordinary filing. Form 4
-  amendment reconciliation is left to the phase that needs it.
+  amendment reconciliation is left to the phase that needs it. See the DEFERRED
+  binding rule under "Implementation notes / pitfalls" — this is a Phase 6
+  pre-go-live BLOCKER because an original + its 4/A double-count until it lands.
+
+- **Joint filings fan out to one row per owner×transaction.** Consequence: a
+  joint P/S filing would count each owner as a distinct insider and sum the
+  transaction value once per owner in BOTH `insider_cluster_buys` AND
+  `insider_sentiment` (extending the existing PROGRESS Decision 6 note, which
+  covers only the cluster view). No current fixture triggers this (the joint
+  `psh-entity` filing is code A, excluded from both P/S views). Resolution
+  deferred until a real joint P/S fixture exists.
+
+- **`filings.cik → filers` FK was dropped (not re-scoped)** to admit Form 4
+  rows whose grouping CIK is the issuer. Integrity for 13F rows is now
+  loader-enforced only (`load13f` inserts the filer first). Follow-up: add a
+  trigger-based guard for `form_type LIKE '13F-HR%'` rows when the production
+  `Sql` path lands (Phase 4/6).
+
+- **Null-price transactions contribute 0 to `total_value`/`net_value` sums**
+  via `coalesce(price, 0)` in `insider_cluster_buys` and `insider_sentiment`
+  (documented understatement, not a distortion — no `AVG` computations exist in
+  the Form 4 views).
 
 - **`form4_transactions` PK is `(accession_no, insider_cik, table_type,
   row_index)`** (the loader's idempotency key), not ARCHITECTURE's surrogate

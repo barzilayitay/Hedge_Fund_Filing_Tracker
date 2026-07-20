@@ -11,7 +11,7 @@ Human: read it before every gate review.
 | 0 — Foundation | AWAITING GATE | phase-0 | — |
 | 1 — 13F ingestion | AWAITING GATE | phase-1 | — |
 | 2 — Analytics | AWAITING GATE | phase-2 | PASS 2026-07-18 |
-| 3 — Form 4 ingestion | AWAITING GATE | phase-3 | — |
+| 3 — Form 4 ingestion | AWAITING GATE | phase-3 | PASS 2026-07-19 |
 | 4 — API | NOT STARTED | — | — |
 | 5 — Frontend | NOT STARTED | — | — |
 | 6 — Ops / scheduling | NOT STARTED | — | — |
@@ -69,28 +69,57 @@ Statuses: NOT STARTED / IN PROGRESS / BLOCKED / AWAITING GATE / DONE
    sentiment 10b5-1 split, fund_realtime_activity), and the manifest **GATE**.
 
 **Acceptance criteria verification:**
-- `npm run typecheck` ✅. `npm run lint` ✅. `npm run test` → **239 pass, 1
-  fail — and the one failure is the intentional placeholder GATE** (see below).
+- `npm run typecheck` ✅. `npm run lint` ✅. `npm run test` → **240 pass** (at
+  build time 239 pass / 1 fail on the placeholder GATE; `fb3dd69` pinned the
+  real accessions and the GATE is now green — see below).
 - Every Form 4 fixture parses; counts + spot checks match expected.
 - Codes P/S/M/A/G each verified; derivative fixture yields underlying + real
   expiry (2028-08-20) + conversion price (20.57); 10b5-1 row has is_10b5_1=true;
   entity-owner psh links to the `filers` row and appears in
   `fund_realtime_activity`; synthetic 3-insider cluster appears, 2-insider does
   not, and 3 insiders spanning >30 days does not; double-load is byte-identical.
-- **`npx supabase db reset` NOT run this session — Docker was down.** All four
-  migrations apply cleanly against embedded Postgres (PGlite) in the acceptance
-  tests, which run the real migration files; the gate reviewer should run
-  `db reset` with Docker up (as in the Phase 2 session).
+- **`npx supabase db reset` verified at the gate (2026-07-19).** The build
+  session could not run it (Docker was down); the gate reviewer ran it with
+  Docker up and the CLAUDE.md `-x` exclusions — **all four migrations
+  (`init`, `13f_schema`, `analytics`, `form4_schema`) apply cleanly on real
+  Postgres**, the first real-Postgres application of the dropped FK and the
+  re-scoped amendment-type check. The acceptance tests also run the real
+  migration files against embedded Postgres (PGlite).
 
-**The placeholder GATE (by design, per human instruction).** Phase 0 fetched
-the Form 4 XML without recording accession numbers, and this session had no
-EDGAR User-Agent (couldn't reach EDGAR to resolve them). `fixtures/form4/
-manifest.json` therefore ships with **placeholder accessions**
-(`9999999999-99-…`, flagged `placeholder: true`) so parser/loader/view tests can
-run, and `tests/phase3/manifest.test.ts` has a **GATE test that FAILS while any
-placeholder remains** — the suite stays red until a human runs
-`npm run fixtures:form4` (network) to pin the real accessions and commits the
-resulting manifest. Do not weaken or skip the gate to go green.
+**The placeholder GATE — CLEARED (commit `fb3dd69`).** Phase 0 fetched the Form
+4 XML without recording accession numbers, so the build session shipped
+`fixtures/form4/manifest.json` with **placeholder accessions**
+(`9999999999-99-…`, flagged `placeholder: true`) and a **GATE test in
+`tests/phase3/manifest.test.ts` that failed while any placeholder remained**.
+`npm run fixtures:form4` was subsequently run (network, EDGAR) to pin the real
+accessions; commit `fb3dd69` ("Re-pin Form 4 fixtures with real accessions")
+committed the resulting manifest. The manifest now holds only real accessions,
+the GATE test is **green**, and the full suite passes with no placeholders
+remaining. Do not re-introduce placeholders or weaken the gate.
+
+**Gate review — PASS (2026-07-19):** all five checks green — `npm run
+typecheck`, `npm run lint`, `npm run test` (240/240, placeholder GATE cleared),
+`npm run build`, and `npx supabase db reset` (all four migrations on real
+Postgres, first verification of the Form 4 migration). Every acceptance
+criterion maps to a passing test; the shared-`filings` re-scoping was proven
+safe in both directions (13F read paths all filter `form_type`; Form 4 views
+read `form4_transactions` only — the `loadForm4` "does not contaminate the 13F
+aggregation view" test proves it); three fixtures (a derivative, a joint
+6-owner, a 10b5-1) were hand-verified against the raw XML. Verdicts on flagged
+items:
+- **Form 4/A supersession deferral — accept-with-spec-amendment.** Ratified;
+  the binding rule + Phase 6 pre-go-live BLOCKER are now recorded in the spec
+  (Implementation notes + As-built notes). Reason it matters: an original + its
+  4/A double-count in `insider_cluster_buys` / `insider_sentiment` until it
+  lands.
+- **Dropped `filings.cik → filers` FK — accept-with-note.** Integrity is
+  loader-enforced for 13F rows; follow-up is a trigger-based guard in Phase 4/6.
+- **Joint P/S multi-count in cluster AND sentiment — accept-with-note.**
+  Decision 6 extended in the spec; revisit when a real joint P/S fixture exists.
+- **Null-price coalesced to 0 in value sums — accept** (documented
+  understatement; no `AVG` in the Form 4 views).
+- **Replace-per-accession, `ownership_13dg` stub inertness, no dead
+  code/secrets — accept.**
 
 ### Phase 2 — Derived analytics
 
@@ -345,9 +374,11 @@ semantics under test are the same SQL that ships to Supabase.
    possible false positive that follows the spec's "one row per (owner,
    transaction)" fan-out; no fixture triggers it (the joint filing is code A).
 
-7. **Form 4 fixture manifest ships with placeholder accessions + a GATE test.**
-   See the Phase 3 phase notes. Per human instruction, the suite stays red until
-   `npm run fixtures:form4` pins the real accessions.
+7. **Form 4 fixture manifest shipped with placeholder accessions + a GATE test
+   — now CLEARED.** At build time the manifest held placeholders and the suite
+   stayed red by design. `npm run fixtures:form4` was run and `fb3dd69`
+   committed the real, pinned accessions; the GATE test is green. See the
+   Phase 3 phase notes.
 
 ### Phase 2
 
@@ -521,29 +552,38 @@ semantics under test are the same SQL that ships to Supabase.
 
 ## Open questions for the human
 
-### Phase 3 (for the gate review)
+### Phase 3 (post-gate follow-ups, tagged by phase)
 
-1. **Run `npm run fixtures:form4` to clear the GATE.** The manifest holds
-   placeholder accessions; the suite has exactly one failing test until you run
-   the fetcher (network, needs `EDGAR_USER_AGENT` in `.env`) and commit the
-   real, pinned manifest. Then re-run `npm run test` — it should be fully green
-   with no code change. Please also run `npx supabase db reset` with Docker up
-   (couldn't this session — Docker was down) to confirm all four migrations
-   apply on real Postgres.
+Gate review PASSED 2026-07-19. The GATE is cleared (`fb3dd69` pinned real
+accessions) and `npx supabase db reset` was verified. The items below are the
+accepted, non-blocking follow-ups carried forward to the phase that owns them.
 
-2. **Dropped the `filings.cik → filers.cik` FK** (Decision 1) to let Form 4
-   rows share the `filings` table. Confirm this is acceptable; the alternative
-   (polluting `filers` with issuers, or a separate `form4_filings` table) is
-   worse. filings.cik integrity now relies on the loader, not a DB FK.
+1. **[→ Phase 6 PRE-GO-LIVE BLOCKER] Form 4/A supersession** (Decision 3). The
+   one 4/A fixture (`purchase-bankwell`) loads standalone. Until supersession is
+   implemented, ingesting an original Form 4 **and** its 4/A double-counts the
+   amended transactions in `insider_cluster_buys` and `insider_sentiment`, so
+   the live poller MUST NOT go live before it lands. Binding rule (now in the
+   spec): link a 4/A to its original by `(issuer_cik, owner_cik,
+   period_of_report)` and mark the original `is_superseded`, mirroring the
+   Phase 1 `reconcilePeriod` pattern.
 
-3. **Form 4/A supersession deferred** (Decision 3). The one 4/A fixture
-   (`purchase-bankwell`) loads as an ordinary filing. Confirm it's fine to build
-   Form 4 amendment reconciliation in a later phase when a real
-   original+amendment pair exists.
+2. **[→ Phase 4/6] `filings.cik → filers.cik` FK was dropped** (Decision 1) to
+   let Form 4 rows share `filings`. Integrity for 13F rows is loader-enforced
+   only. Follow-up: add a trigger-based guard for `form_type LIKE '13F-HR%'`
+   rows when the production `Sql` path lands.
 
-4. **`fund_realtime_activity` currently covers Form 4 only.** ARCHITECTURE
-   overlays "Form 4 + 13D/G"; the `ownership_13dg` table is a stub, so the view
-   unions in nothing yet. 13D/G parsing is explicitly out of Phase 3 scope.
+3. **[→ revisit when a real fixture exists] Joint P/S multi-count.** Joint
+   filings fan out to one row per owner×transaction; a joint P/S filing would
+   count each owner as a distinct insider and sum its value once per owner in
+   BOTH `insider_cluster_buys` and `insider_sentiment` (Decision 6 note now
+   extended to both views in the spec). No current fixture triggers it (the
+   joint `psh-entity` filing is code A). Resolve when a real joint P/S fixture
+   is added.
+
+4. **[→ Phase for 13D/G] `fund_realtime_activity` currently covers Form 4
+   only.** ARCHITECTURE overlays "Form 4 + 13D/G"; the `ownership_13dg` table is
+   an inert stub, so the view unions in nothing yet. 13D/G parsing was
+   explicitly out of Phase 3 scope.
 
 ### Phase 2 (for the gate review)
 
@@ -641,10 +681,12 @@ semantics under test are the same SQL that ships to Supabase.
   `lib/edgar/client.ts` only and re-pins the existing on-disk fixtures rather
   than re-downloading "most recent". `npm run fixtures:13f` already replaced it
   for 13F.
-- **Form 4 fixture manifest ships with placeholder accessions.** Phase 0 never
-  recorded the Form 4 accessions and Phase 3 had no EDGAR access. Until a human
-  runs `npm run fixtures:form4`, `tests/phase3/manifest.test.ts` fails by design
-  (the GATE). This is the single expected red in the suite.
+- ~~**Form 4 fixture manifest ships with placeholder accessions.**~~
+  **RESOLVED (`fb3dd69`).** Phase 0 never recorded the Form 4 accessions and the
+  build session had no EDGAR access, so the manifest shipped with placeholders
+  and `tests/phase3/manifest.test.ts` (the GATE) failed by design — the single
+  expected red. `npm run fixtures:form4` has since pinned the real accessions;
+  the manifest is clean and the GATE is green.
 - The 13(f) securities list filename pins `2026q1`; refreshing it quarterly is
   unhandled (see open question 3).
 - `createOpenFigiClient` has never run against the live API (open question 4).
