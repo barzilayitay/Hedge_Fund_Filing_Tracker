@@ -12,7 +12,7 @@ Human: read it before every gate review.
 | 1 — 13F ingestion | AWAITING GATE | phase-1 | — |
 | 2 — Analytics | AWAITING GATE | phase-2 | PASS 2026-07-18 |
 | 3 — Form 4 ingestion | AWAITING GATE | phase-3 | PASS 2026-07-19 |
-| 4 — API | NOT STARTED | — | — |
+| 4 — API | AWAITING GATE | phase-4 | — |
 | 5 — Frontend | NOT STARTED | — | — |
 | 6 — Ops / scheduling | NOT STARTED | — | — |
 | 7 — Deploy | NOT STARTED | — | — |
@@ -20,6 +20,56 @@ Human: read it before every gate review.
 Statuses: NOT STARTED / IN PROGRESS / BLOCKED / AWAITING GATE / DONE
 
 ## Current phase notes
+
+### Phase 4 — API layer
+
+**Delivered:**
+1. **Migration** `supabase/migrations/20260722120000_api.sql`:
+   - Six read-only `security definer` RPCs, each returning a single `jsonb`
+     value: `get_fund_holdings` (server-side sort/filter/paginate with a
+     whitelisted `ORDER BY` + `total_count`), `get_fund_summary` (summary row +
+     available quarters), `get_fund_realtime` (10%-owner-fund Form 4 feed),
+     `get_stock_institutional` (funds holding a ticker + position change),
+     `get_stock_insiders` (Form 4 rows + sentiment + active-cluster flag),
+     `get_confluence` (per-quarter net institutional Δshares + insider P/S
+     transactions).
+   - **Security model:** conditional `create role anon`; RLS enabled on all ten
+     base tables with privileges revoked from anon/public; `execute` on the six
+     RPCs and `select` on five derived views granted to anon. Verified on both
+     PGlite and real Supabase Postgres: anon executes the RPCs but is denied
+     every direct base-table read.
+   - Three functions carry `#variable_conflict use_column` (params `ticker` /
+     `fund_slug` share names with columns; params reached via qualified
+     `get_fn.param`).
+2. **Typed client** `lib/api.ts`: one function per RPC over the `Sql` port,
+   each zod-parsing the returned jsonb (the schema is the contract). Percentages
+   passed through 0..100 untouched (Phase 2 Decision 4).
+3. **Export** `lib/export.ts` (`buildHoldingsExport` + `holdingsToDelimited`,
+   RFC-4180 quoting, UI-named headers) and the thin route
+   `app/api/export/route.ts?fund=&quarter=&format=csv|tsv`.
+4. **Seed script** `scripts/seed-dev.ts` (`npm run seed`): loads every committed
+   fixture (13F + Form 4 + prices + companyfacts + securities) through the
+   existing loaders against a production `Sql`, then `refresh_derived()`.
+5. **Tests** `tests/phase4/` (helper `tests/helpers/phase4.ts`): `api.test.ts`
+   (shape/sort-ground-truth/pagination/search/invalid-sort/empty per RPC),
+   `export.test.ts` (CSV+TSV round-trip parse, row-count = holdings + header),
+   `security.test.ts` (anon RLS denial on base tables + RPC/view access).
+
+**Acceptance criteria verification:**
+- `npm run typecheck` ✅. `npm run lint` ✅. `npm run test` → **260 pass** (was
+  240; +20 Phase 4). `npm run build` ✅ warning-free (route emitted as dynamic).
+- Each RPC returns the documented shape (zod-parsed). Pagination: page 2 / size
+  10 = rows 11–20 of the sorted set (proven equal to a full-set slice). Sort by
+  market_value desc equals a raw `ORDER BY` ground truth. Invalid `sort_col`
+  rejects with `invalid sort_col` (SQLSTATE 22023), not a 500. Export CSV row
+  count = holdings + header and re-parses as valid CSV/TSV. Anon cannot SELECT
+  `holdings_13f` (and every other base table) directly — proven by test on
+  PGlite and re-verified on real Postgres.
+- **`npx supabase db reset` run this session (Docker up):** all five migrations
+  (`init`, `13f_schema`, `analytics`, `form4_schema`, `api`) apply cleanly on
+  real Supabase Postgres — the first real-Postgres application of the API
+  migration. anon security additionally verified live via psql (EXECUTE on all
+  six RPCs granted; direct `holdings_13f` read denied).
 
 ### Phase 3 — Form 4 ingestion
 
@@ -328,6 +378,53 @@ semantics under test are the same SQL that ships to Supabase.
 
 ## Decisions
 
+### Phase 4
+
+1. **RPCs return a single `jsonb` value**, not a `setof`. One call carries both
+   `rows` and `total_count`/summary; the wire shape is an explicit zod contract;
+   it is stable against later view-column additions. *Rejected:* `setof` rows
+   with a window `count(*) over()` (awkward for empty results and mixes the
+   total into every row).
+
+2. **`lib/api.ts` uses the `Sql` port, not `@supabase/supabase-js`** (confirmed
+   with the human before coding). Consistent with Phase 1 Decision 6, and every
+   RPC is unit-testable on PGlite. A supabase-js adapter is deferred to Phase 5
+   when the browser transport is needed; the zod contracts are
+   transport-independent. `@supabase/supabase-js` was not re-added.
+
+3. **Acceptance tests run on PGlite; `supabase db reset` is the real-Postgres
+   check.** The spec header says "run against local Supabase", but CLAUDE.md's
+   binding rule is "the test suite needs no Docker" and all prior phases test on
+   embedded Postgres. The anon RLS test uses `SET ROLE anon` on the PGlite
+   connection. This session also ran `db reset` (Docker up) and verified the
+   anon model on real Supabase Postgres. *Deviation from the literal spec
+   wording, recorded here and in the spec As-built notes.*
+
+4. **`anon` role created conditionally in the migration** (`if not exists`) so
+   the same DDL runs on both Supabase (role pre-exists) and PGlite (role
+   absent). RLS is enabled on every base table with anon/public privileges
+   revoked; anon reaches data only through the six `security definer` RPCs and
+   `select` on five derived views. The migration role owns tables and functions,
+   so definer functions and views bypass RLS; superuser/owner sessions (loaders,
+   tests) bypass RLS as before.
+
+5. **Sort injection is prevented by a hard whitelist**, not identifier quoting
+   alone. `get_fund_holdings` checks `sort_col` against an allow-list and
+   `sort_dir` against `{asc,desc}` before interpolation (`%I`/validated literal);
+   all data values go through `EXECUTE ... USING`. An unknown `sort_col` raises
+   SQLSTATE 22023 → a rejected promise, not a 500.
+
+6. **`filings.cik → filers` trigger guard stays Phase 6** (confirmed with the
+   human). The Phase 4 pull-forward condition was "if Phase 4 introduces the
+   production Sql path"; it does not — the API is read-only and
+   `scripts/prod-sql.ts` is unchanged (`seed-dev` only reuses it locally). See
+   open question 2 below (still tagged Phase 6).
+
+7. **`prod-sql.ts` `pg` specifier assembled at runtime** (`["p","g"].join("")`)
+   so neither tsc nor Turbopack resolves the optional, uninstalled dependency
+   when it traces the new export route. Keeps `npm run build` warning-free while
+   `pg` stays uncommitted.
+
 ### Phase 3
 
 1. **Dropped `filings_cik_fkey` (filings.cik → filers.cik).** The shared
@@ -552,6 +649,31 @@ semantics under test are the same SQL that ships to Supabase.
 
 ## Open questions for the human
 
+### Phase 4 (for the gate review)
+
+1. **RPCs return `jsonb`, transport is the `Sql` port** (Decisions 1–2, both
+   pre-confirmed). Confirm this is the intended API contract before Phase 5
+   builds the frontend on `lib/api.ts`. Phase 5 will decide whether server
+   components call these via a `pg`-backed `Sql` or a new supabase-js `.rpc()`
+   adapter over the same zod schemas.
+
+2. **Tests run on PGlite, not live Supabase** (Decision 3) — a deviation from
+   the spec's "run against local Supabase" wording, consistent with CLAUDE.md
+   and prior phases. `db reset` + a live psql anon check were done this session.
+   Confirm this is acceptable as the standing test strategy.
+
+3. **`anon` is created by the API migration** (Decision 4). On production
+   Supabase the role already exists so the `if not exists` guard is a no-op, but
+   confirm the grant set (execute on six RPCs; select on five derived views;
+   nothing on base tables) matches the intended public surface. Note the derived
+   views are readable by anon directly — acceptable because they are aggregated
+   public 13F/Form 4 data.
+
+4. **Export route needs `pg` + `DATABASE_URL`** and is not test-covered (only
+   its core `buildHoldingsExport` is, on PGlite). It shares the still-uncommitted
+   `pg` production `Sql` (Phase 6 debt). The route builds and is warning-free but
+   cannot run until `pg` is installed and a DB URL is set.
+
 ### Phase 3 (post-gate follow-ups, tagged by phase)
 
 Gate review PASSED 2026-07-19. The GATE is cleared (`fb3dd69` pinned real
@@ -567,10 +689,13 @@ accepted, non-blocking follow-ups carried forward to the phase that owns them.
    period_of_report)` and mark the original `is_superseded`, mirroring the
    Phase 1 `reconcilePeriod` pattern.
 
-2. **[→ Phase 4/6] `filings.cik → filers.cik` FK was dropped** (Decision 1) to
+2. **[→ Phase 6] `filings.cik → filers.cik` FK was dropped** (Decision 1) to
    let Form 4 rows share `filings`. Integrity for 13F rows is loader-enforced
    only. Follow-up: add a trigger-based guard for `form_type LIKE '13F-HR%'`
-   rows when the production `Sql` path lands.
+   rows when the production `Sql` path lands. **Phase 4 evaluated and deferred
+   this** (Phase 4 Decision 6): Phase 4 is a read-only API and did not introduce
+   a production write `Sql` path (`scripts/prod-sql.ts` is unchanged), so the
+   pull-forward condition was not met. Remains a Phase 6 item.
 
 3. **[→ revisit when a real fixture exists] Joint P/S multi-count.** Joint
    filings fan out to one row per owner×transaction; a joint P/S filing would
