@@ -1,8 +1,12 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import { createTestDb, type TestDb } from "../helpers/db";
 import { seedPhase4, berkshireSlug, BRK_CURRENT_QUARTER } from "../helpers/phase4";
-import { getFundHoldings } from "@/lib/api";
-import { buildHoldingsExport, EXPORT_HEADERS } from "@/lib/export";
+import { getFundHoldings, type EnrichedHolding } from "@/lib/api";
+import {
+  buildHoldingsExport,
+  holdingsToDelimited,
+  EXPORT_HEADERS,
+} from "@/lib/export";
 
 let db: TestDb;
 let brkSlug: string;
@@ -117,5 +121,73 @@ describe("buildHoldingsExport", () => {
     const parsed = parseDelimited(out.content, ",");
     expect(parsed).toHaveLength(1);
     expect(parsed[0]).toEqual([...EXPORT_HEADERS]);
+  });
+});
+
+describe("holdingsToDelimited CSV/formula-injection safety", () => {
+  // A holding whose issuer Name and Sector — both filer-controlled 13F free
+  // text — begin with spreadsheet formula triggers.
+  function maliciousRow(overrides: Partial<EnrichedHolding>): EnrichedHolding {
+    return {
+      cik: "0001067983",
+      period_of_report: "2026-03-31",
+      cusip: "037833100",
+      ticker: "AAPL",
+      name: "=cmd|' /C calc'!A0",
+      put_call: null,
+      share_class: null,
+      sector: "+SUM(1)",
+      shares: 100,
+      principal_amt: null,
+      market_value: 5000,
+      prior_market_value: 0,
+      pct_of_portfolio: 1,
+      prior_pct_of_portfolio: null,
+      rank: 1,
+      change_in_shares: 100,
+      pct_change: null,
+      position_status: "NEW",
+      pct_ownership: null,
+      qtr_first_owned: "2026-03-31",
+      est_avg_price: null,
+      quarter_end_price: null,
+      ...overrides,
+    };
+  }
+
+  it("neutralizes formula-prefixed cells by prepending a single quote", () => {
+    const csv = holdingsToDelimited([maliciousRow({})], "csv");
+    const dataLine = csv.split("\r\n")[1];
+    // Name is column index 1 (after Ticker). It must be quoted (contains a comma
+    // and quotes) and start with the neutralizing single quote, not a bare '='.
+    const nameIdx = EXPORT_HEADERS.indexOf("Name");
+    const sectorIdx = EXPORT_HEADERS.indexOf("Sector");
+    const parsed = parseDelimited(csv, ",");
+    expect(parsed[1][nameIdx]).toBe("'=cmd|' /C calc'!A0");
+    expect(parsed[1][sectorIdx]).toBe("'+SUM(1)");
+    // No un-neutralized formula trigger begins any raw field on the data line.
+    for (const cell of dataLine.split(",")) {
+      const unquoted = cell.replace(/^"|"$/g, "");
+      expect(/^[=+\-@]/.test(unquoted)).toBe(false);
+    }
+  });
+
+  it("covers -, @, tab and CR leading characters", () => {
+    for (const bad of ["-2+3", "@X", "\tX", "\rX"]) {
+      const csv = holdingsToDelimited([maliciousRow({ name: bad })], "csv");
+      const nameIdx = EXPORT_HEADERS.indexOf("Name");
+      const parsed = parseDelimited(csv, ",");
+      expect(parsed[1][nameIdx].startsWith("'")).toBe(true);
+    }
+  });
+
+  it("leaves ordinary values untouched", () => {
+    const csv = holdingsToDelimited(
+      [maliciousRow({ name: "Apple Inc", sector: "Technology" })],
+      "csv",
+    );
+    const parsed = parseDelimited(csv, ",");
+    expect(parsed[1][EXPORT_HEADERS.indexOf("Name")]).toBe("Apple Inc");
+    expect(parsed[1][EXPORT_HEADERS.indexOf("Sector")]).toBe("Technology");
   });
 });

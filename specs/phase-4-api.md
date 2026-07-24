@@ -102,3 +102,70 @@ These reflect the shipped implementation and accepted deviations. See
   specifier is now assembled at runtime (`["p","g"].join("")`) so neither tsc
   nor the Next/Turbopack bundler resolves the optional, uninstalled dependency
   when it traces the new export route. `npm run build` is warning-free.
+
+## Gate review #1 — FAILED, then remediated (security surface)
+
+The first Phase 4 gate review (adversarial, live psql + PostgREST against a
+`db reset` database) **failed the phase on the security model**. The stated
+model was "anon reaches six RPCs + five views"; the *deployed* model additionally
+exposed an executable helper and write privileges on views. Two blockers, both
+now fixed on this branch:
+
+- **BLOCKER-1 — `refresh_derived()` executable by anon over PostgREST.** Postgres
+  grants `EXECUTE` to `PUBLIC` on every new function by default. `refresh_derived()`
+  (created in Phase 2) was therefore PUBLIC-executable and became **anon-reachable
+  the moment Phase 4 created the `anon` role** — an inert cross-phase grant turned
+  into a live primitive. Verified `POST /rest/v1/rpc/refresh_derived` → `HTTP 204`
+  with only the anon key. It runs `REFRESH MATERIALIZED VIEW` (non-CONCURRENTLY →
+  AccessExclusiveLock), so an unauthenticated client could block every read path.
+  **Fix:** the API migration now `revoke execute on all functions in schema public
+  from public`, explicitly revokes `refresh_derived()`/`set_updated_at()` from
+  public+anon, `alter default privileges … revoke execute on functions`, then
+  grants EXECUTE back on only the six RPCs.
+
+- **BLOCKER-2 — anon held `TRUNCATE`/`TRIGGER`/`REFERENCES`/`MAINTAIN` on all
+  seven views/matviews.** Supabase ships a `pg_default_acl` that auto-grants
+  `D/x/t/m` to anon on every relation the migration role creates in `public`.
+  The original revoke loop named only base tables (relkind `r`), so the views
+  kept the default grant. `MAINTAIN` (PG17+) alone lets a role `REFRESH` a
+  matview — confirmed working as anon — a second, independent path to BLOCKER-1's
+  DoS. **Fix:** `revoke all on all tables in schema public from anon, public`
+  ("all tables" covers relkind r, v, m) plus `alter default privileges … revoke
+  all on tables` so future relations are not re-granted.
+
+- **BLOCKER-3 — the five direct view grants removed entirely.** They were unused
+  (`lib/api.ts` reads only the six RPCs) and voided the RPC's sort whitelist,
+  500-row cap and slug-scoping, and enabled enumeration. A future phase that
+  needs a direct view will grant it deliberately, with a row cap.
+
+- **Testing strategy — PGlite ratified, but ONLY alongside the grant-surface
+  snapshot test (supersedes open question 2).** Running the acceptance tests on
+  PGlite (not a live "local Supabase") is confirmed as the standing strategy,
+  consistent with CLAUDE.md's "the test suite needs no Docker". **But it is valid
+  only because the security surface is now asserted positively, not by denial.**
+  A denial-only test ("is `holdings_13f` denied?") **cannot see extra surface** —
+  that is exactly why both blockers shipped. `tests/phase4/security.test.ts` now
+  ENUMERATES from the catalog and asserts the anon surface *equals* a committed
+  set (exactly six executable functions; zero anon-reachable relations), plus
+  invariants (every base table has RLS; every `security definer` function pins
+  `search_path`), all catalog-driven so a new object is covered automatically.
+  BLOCKER-1's PUBLIC-execute default reproduces on PGlite and is now caught in CI.
+  **This snapshot test spans phases by design (BLOCKER-1 originated in Phase 2)
+  and must never be deleted as redundant.** BLOCKER-2's Supabase-specific
+  `pg_default_acl` does NOT reproduce on PGlite; covering it needs a Docker-gated
+  migration job (proposed separately, not yet built).
+
+- **Smaller fixes from the review.** CSV/TSV export now neutralizes
+  spreadsheet-formula-prefixed cells (`= + - @ \t \r` → leading `'`) since the
+  issuer Name is filer-controlled 13F free text; `get_fund_holdings` caps `page`
+  and uses a `bigint` offset so an anon-controlled page cannot raise SQLSTATE
+  22003; the export route validates `fund` against the slug regex (as `quarter`/
+  `format` already were); the `top_new_buys`/`top_sells` zod schemas are tightened
+  from `record(unknown)` to the SQL's fixed object shape; `scripts/seed-dev.ts`
+  refuses a non-localhost `DATABASE_URL` unless `--i-know-what-im-doing` is passed
+  (and `npm run seed` is on the guard-bash blocklist).
+
+- **Export buffers in memory (not streamed) — Phase 6 hardening.** `route.ts`
+  builds the full body via `buildHoldingsExport` (paging the RPC) and returns it
+  in one `Response`; there is no auth or rate limiting yet. Fine for 13F-sized
+  sets; unbounded-size streaming + rate limiting are tagged for Phase 6.

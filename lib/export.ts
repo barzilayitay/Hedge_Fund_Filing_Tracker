@@ -39,10 +39,22 @@ const COLUMNS: ReadonlyArray<
 
 export const EXPORT_HEADERS: readonly string[] = COLUMNS.map(([h]) => h);
 
-/** One field, escaped for the given delimiter (RFC 4180 quoting for CSV/TSV). */
+/**
+ * CSV/TSV injection defense. A cell beginning with a formula-trigger character
+ * is executed as a formula by Excel/Sheets when the file is opened. Values like
+ * the issuer Name come from filer-controlled 13F XML, so neutralize any cell
+ * that starts with one by prefixing a single quote (the standard, reversible
+ * mitigation — the leading `'` makes the app treat the cell as text).
+ */
+const FORMULA_PREFIX = /^[=+\-@\t\r]/;
+
+/** One field, neutralized for spreadsheet formula injection then RFC-4180 quoted. */
 function escapeField(value: unknown, delimiter: string): string {
   if (value === null || value === undefined) return "";
-  const s = String(value);
+  let s = String(value);
+  if (FORMULA_PREFIX.test(s)) {
+    s = `'${s}`;
+  }
   if (s.includes(delimiter) || s.includes('"') || s.includes("\n") || s.includes("\r")) {
     return `"${s.replace(/"/g, '""')}"`;
   }

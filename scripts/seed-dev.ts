@@ -17,6 +17,10 @@
  *   7. refresh_derived()
  *
  * Idempotent: every loader upserts, so re-running is safe.
+ *
+ * SAFETY: this writes to whatever DATABASE_URL points at. To honor hard rule 4
+ * ("never touch production"), it refuses to run unless the DATABASE_URL host is
+ * localhost / 127.0.0.1, unless the operator passes --i-know-what-im-doing.
  */
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -130,7 +134,44 @@ async function seedAll(sql: Sql): Promise<void> {
   console.log("refresh_derived() complete");
 }
 
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+
+/**
+ * Guard against seeding a non-local database. Returns nothing on success;
+ * throws with an explanatory message when the target is not local and the
+ * override flag is absent.
+ */
+export function assertLocalTarget(
+  databaseUrl: string | undefined,
+  argv: readonly string[],
+): void {
+  const override = argv.includes("--i-know-what-im-doing");
+  if (override) return;
+  if (!databaseUrl) {
+    // No URL: makeProductionSql will throw its own clear error; nothing to guard.
+    return;
+  }
+  let host: string;
+  try {
+    host = new URL(databaseUrl).hostname;
+  } catch {
+    throw new Error(
+      `seed-dev: DATABASE_URL is not a valid URL; refusing to run. ` +
+        `Pass --i-know-what-im-doing to override.`,
+    );
+  }
+  if (!LOCAL_HOSTS.has(host)) {
+    throw new Error(
+      `seed-dev: refusing to seed a non-local database (host "${host}"). ` +
+        `This script writes fixtures and must never touch production ` +
+        `(CLAUDE.md hard rule 4). Point DATABASE_URL at localhost, or pass ` +
+        `--i-know-what-im-doing if you really mean to seed "${host}".`,
+    );
+  }
+}
+
 async function main(): Promise<void> {
+  assertLocalTarget(process.env.DATABASE_URL, process.argv.slice(2));
   const { sql, close } = await makeProductionSql();
   try {
     await seedAll(sql);
@@ -140,7 +181,11 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+// Only run when invoked directly (npm run seed), not when imported by a test
+// that exercises assertLocalTarget.
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

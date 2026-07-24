@@ -106,6 +106,27 @@ export async function getFundHoldings(
 
 // --- get_fund_summary -------------------------------------------------------
 
+// The fixed jsonb_build_object shapes emitted by fund_quarter_summary
+// (analytics.sql). ticker/share_class/shares are nullable at the source; cusip,
+// market_value and value_dropped are not.
+export const topNewBuySchema = z.object({
+  ticker: z.string().nullable(),
+  cusip: z.string(),
+  share_class: z.string().nullable(),
+  market_value: num,
+  shares: num.nullable(),
+});
+export type TopNewBuy = z.infer<typeof topNewBuySchema>;
+
+export const topSellSchema = z.object({
+  ticker: z.string().nullable(),
+  cusip: z.string(),
+  share_class: z.string().nullable(),
+  position_status: z.enum(["REDUCED", "SOLD_OUT"]),
+  value_dropped: num,
+});
+export type TopSell = z.infer<typeof topSellSchema>;
+
 export const fundSummaryRowSchema = z.object({
   cik,
   period_of_report: isoDate,
@@ -114,8 +135,8 @@ export const fundSummaryRowSchema = z.object({
   top10_concentration_pct: num.nullable(),
   turnover_pct: num.nullable(),
   sector_allocation: z.record(z.string(), num),
-  top_new_buys: z.array(z.record(z.string(), z.unknown())),
-  top_sells: z.array(z.record(z.string(), z.unknown())),
+  top_new_buys: z.array(topNewBuySchema),
+  top_sells: z.array(topSellSchema),
 });
 export type FundSummaryRow = z.infer<typeof fundSummaryRowSchema>;
 

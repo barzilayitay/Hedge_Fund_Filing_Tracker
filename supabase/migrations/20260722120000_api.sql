@@ -63,7 +63,7 @@ declare
   v_dir       text;
   v_cik       text;
   v_fund      jsonb;
-  v_offset    integer;
+  v_offset    bigint;
   v_search    text;
   v_where     text;
   v_total     integer;
@@ -78,9 +78,14 @@ begin
   end if;
 
   if page < 1 then page := 1; end if;
+  -- Cap page so an anon-controlled value cannot overflow the offset (integer
+  -- multiplication would raise SQLSTATE 22003 and leak a plpgsql context). One
+  -- million pages is already far beyond any real dataset.
+  if page > 1000000 then page := 1000000; end if;
   if page_size < 1 then page_size := 50; end if;
   if page_size > 500 then page_size := 500; end if;
-  v_offset := (page - 1) * page_size;
+  -- bigint arithmetic; v_offset is bigint so the product never overflows int4.
+  v_offset := (page::bigint - 1) * page_size;
   v_search := case when search is null or search = '' then null
                    else '%' || search || '%' end;
 
@@ -469,40 +474,69 @@ end
 $$;
 
 -- ---------------------------------------------------------------------------
--- Security: lock the base tables, expose data only through the RPCs above and a
--- short list of derived views.
+-- Security: expose data to anon ONLY through the six security-definer RPCs.
+-- Nothing else — no base table, no view, no other function — is reachable.
 --
--- RLS is enabled with no anon policies and privileges are revoked, so the anon
--- role cannot read any base table directly (belt and suspenders — either the
--- missing grant or RLS alone would deny it). The migration role owns the tables
--- and functions, so the security-definer RPCs and the views (which run with
--- their owner's rights) still read the data. Superuser/owner sessions used by
--- the loaders and tests bypass RLS as before.
+-- This is layered so no single mistake reopens the surface, and — critically —
+-- so it is robust against the two ways the gate-review found the surface had
+-- leaked open:
+--
+--   * Supabase ships a default ACL (pg_default_acl) that auto-grants
+--     D/x/t/m (TRUNCATE/TRIGGER/REFERENCES/MAINTAIN — MAINTAIN alone lets a
+--     role REFRESH a matview) to anon on every relation the migration role
+--     creates in `public`. A per-table `revoke` that only names base tables
+--     leaves every VIEW and MATERIALIZED VIEW carrying those default grants.
+--     We revoke ALL on ALL tables (relkind r, v AND m) from anon+public, and
+--     `alter default privileges` so relations created LATER are not re-granted.
+--
+--   * Postgres grants EXECUTE to PUBLIC on every new function by default. A
+--     helper from an earlier phase (refresh_derived, set_updated_at) was
+--     therefore PUBLIC-executable and became anon-reachable the moment the anon
+--     role was created here — an inert Phase 2 grant turned into a live
+--     unauthenticated write/DoS primitive. We revoke EXECUTE from PUBLIC on
+--     every function first, alter default privileges for future functions, and
+--     then grant EXECUTE back on exactly the six intended RPCs.
+--
+-- RLS is additionally enabled (no policies) on every base table so a leaked
+-- grant still yields zero rows. The migration role owns the tables and
+-- functions and has BYPASSRLS, so the security-definer RPCs read on anon's
+-- behalf; loader/test sessions run as the owner and are unaffected.
 -- ---------------------------------------------------------------------------
+
+-- 1. RLS on every base table, catalog-driven so a table added later is never
+--    silently left unprotected (the invariant is also asserted by a test).
 do $$
 declare
-  t text;
+  t regclass;
 begin
-  foreach t in array array[
-    'filers', 'filings', 'securities', 'holdings_13f', 'companies',
-    'insiders', 'insider_relationships', 'form4_transactions',
-    'ownership_13dg', 'quarterly_prices'
-  ]
+  for t in
+    select c.oid
+      from pg_class c
+      join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relkind = 'r'
   loop
-    execute format('alter table %I enable row level security', t);
-    execute format('revoke all on table %I from public, anon', t);
+    execute format('alter table %s enable row level security', t);
   end loop;
 end
 $$;
 
--- The only direct reads anon may perform: the derived, already-aggregated views.
-grant select on fund_holdings_enriched to anon;
-grant select on fund_quarter_summary to anon;
-grant select on fund_realtime_activity to anon;
-grant select on insider_cluster_buys to anon;
-grant select on insider_sentiment to anon;
+-- 2. Revoke every privilege on every table/view/matview from anon and public.
+--    "all tables" in Postgres covers relkind r, v and m, so this closes the
+--    default-ACL leak on the views as well as the base tables.
+revoke all on all tables in schema public from anon, public;
 
--- The RPC surface.
+-- 3. Stop objects created LATER in this schema from being auto-granted to
+--    anon/public (both relations and functions).
+alter default privileges in schema public revoke all on tables from anon, public;
+alter default privileges in schema public revoke execute on functions from anon, public;
+
+-- 4. Revoke EXECUTE broadly, then grant it back on only the six RPCs. This is
+--    what keeps refresh_derived()/set_updated_at() (and any future helper) off
+--    the anon surface unless it is deliberately granted here.
+revoke execute on all functions in schema public from public;
+revoke execute on function refresh_derived() from public, anon;
+revoke execute on function set_updated_at() from public, anon;
+
 grant execute on function get_fund_holdings(text, date, text, text, integer, integer, text) to anon;
 grant execute on function get_fund_summary(text, date) to anon;
 grant execute on function get_fund_realtime(text, integer) to anon;

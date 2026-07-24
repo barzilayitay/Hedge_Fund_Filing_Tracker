@@ -26,6 +26,7 @@ BLOCKLIST=(
   "git push -f"
   "rm -rf /"
   "drop database"
+  "npm run seed"
 )
 
 for pattern in "${BLOCKLIST[@]}"; do
