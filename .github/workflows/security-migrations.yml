@@ -1,0 +1,57 @@
+name: Security (migrations)
+
+# Docker-gated security gate for schema changes. Runs the real Supabase stack
+# (Postgres + PostgREST) and asserts the anon attack surface, which the
+# Docker-free `npm run test` PGlite suite cannot fully cover: PGlite does not
+# reproduce Supabase provisioning artifacts such as pg_default_acl, so a
+# view-grant leak that only appears on real Supabase is invisible there.
+# Origin: Phase 4 gate review #1 (BLOCKER-1/2). See ARCHITECTURE.md "CI".
+#
+# CI runner note (reconciled with CLAUDE.md): CLAUDE.md's Supabase invocation is
+# written for the Windows dev box, where studio/storage-api/postgres-meta/etc.
+# fail health checks and must be excluded. GitHub's runner is Linux
+# (ubuntu-latest); the same `-x` exclusion list is applied here for parity and
+# speed. It is safe on Linux and, critically, still starts db + gateway +
+# PostgREST, which both checks below require.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+
+jobs:
+  anon-surface:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      # Bring up the real stack. Same exclusions as CLAUDE.md's local command.
+      - name: Start Supabase (real Postgres + PostgREST)
+        run: npx supabase start -x studio,storage-api,postgres-meta,imgproxy,logflare,vector,mailpit
+
+      - name: Apply all migrations (db reset)
+        run: npx supabase db reset
+
+      # (i) execute-surface == six RPCs, (ii) no anon/public relation grants,
+      # (iii) RLS on every base table. psql exits non-zero (naming the offending
+      # object) on any deviation.
+      - name: Assert anon surface (psql state checks)
+        run: |
+          DB_URL=$(npx supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')
+          if [ -z "$DB_URL" ]; then echo "could not read DB_URL"; exit 1; fi
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f scripts/ci/assert-anon-surface.sql
+
+      # Over-the-wire reachability with the anon key: six RPCs 200; refresh_derived
+      # and the five views 401/404.
+      - name: PostgREST smoke (anon key)
+        run: bash scripts/ci/postgrest-smoke.sh
+
+      - name: Stop Supabase
+        if: always()
+        run: npx supabase stop

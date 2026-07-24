@@ -50,6 +50,13 @@ npx supabase db reset               # rebuild local db from migrations + seed
 3. **Schema changes only via migrations.** Never execute DDL directly
    against any database. Local: `supabase migration new` + `supabase db
    reset`. Remote: migrations are applied by CI/human, not by you.
+   Any PR touching `supabase/migrations/**` must pass the Docker-gated
+   **`Security (migrations)`** workflow (a required check) AND a human-run
+   adversarial gate review before merge. That job exists because PGlite (the
+   Docker-free test engine) cannot reproduce Supabase provisioning artifacts
+   like `pg_default_acl`, so the standing PGlite security tests cannot catch a
+   view-grant leak that only appears on real Supabase — origin: Phase 4 gate
+   review #1. Do not weaken or delete it. See ARCHITECTURE.md "CI".
 4. **Never touch production.** No commands against the production Supabase
    project or Vercel production environment unless the spec for the
    current phase explicitly says so (Phase 7 only).

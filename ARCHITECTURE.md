@@ -62,6 +62,38 @@ Derived (views / matviews, refreshed after ingest):
 - Fair access: User-Agent with contact email on every request; ≤8 req/s;
   exponential backoff on 429/403.
 
+## CI
+
+Two workflows gate merges to `main`:
+
+- **`CI`** (`.github/workflows/ci.yml`) — runs on every PR: typecheck, lint, the
+  full `npm run test` suite, and `build`. Docker-free; the acceptance tests run
+  the real migrations against embedded Postgres (PGlite).
+
+- **`Security (migrations)`** (`.github/workflows/security-migrations.yml`) —
+  runs **only on PRs that touch `supabase/migrations/**`** and is a **required
+  check** for those PRs. It brings up the real Supabase stack (Postgres +
+  PostgREST) via `supabase start` + `supabase db reset`, then asserts the anon
+  attack surface both in the catalog (`scripts/ci/assert-anon-surface.sql`:
+  execute-surface == the six RPCs; zero anon/public grants on any table/view/
+  matview; RLS on every base table) and over the wire with the anon key
+  (`scripts/ci/postgrest-smoke.sh`: the six RPCs reachable; `refresh_derived`
+  and the five derived views denied).
+
+  **Why it must exist and must not be deleted as CI cruft:** PGlite cannot
+  reproduce Supabase provisioning artifacts — most importantly `pg_default_acl`,
+  which auto-grants privileges (including `MAINTAIN`) to `anon` on owner-created
+  relations. A view-grant leak that surfaces only on real Supabase is therefore
+  invisible to the standing PGlite security tests. This job is the backstop for
+  that class. Origin: **Phase 4 gate review #1** (BLOCKER-1/2), where exactly
+  such a leak shipped.
+
+  The job is a supplement, not a substitute: migration PRs still require the
+  human-run adversarial gate review in a fresh session (see PROGRESS.md). The
+  runner is Linux (ubuntu-latest); it applies the same `-x` service-exclusion
+  list as CLAUDE.md's Windows command, which is safe there and still starts db +
+  gateway + PostgREST.
+
 ## Key decisions
 
 1. **Supabase over self-hosted Postgres** — pg_cron + edge functions remove a

@@ -738,12 +738,25 @@ semantics under test are the same SQL that ships to Supabase.
    debt). It builds and is warning-free. It **buffers the whole body in memory**
    (no streaming) and has no auth/rate-limit — tagged for Phase 6 hardening.
 
-5. **[NEEDS SIGN-OFF] Docker-gated CI job for Supabase-only ACL checks.** The
-   gate reviewer recommends a CI job (real Supabase via `supabase db reset` +
-   psql assertions) to cover `pg_default_acl` behavior PGlite can't reproduce
-   (BLOCKER-2 class). **Not built yet — awaiting the human's decision** on what it
-   runs, when it triggers (proposed: PRs touching `supabase/migrations/**`), and
-   what it gates.
+5. **[DONE — approved and built] Docker-gated CI job for Supabase-only ACL
+   checks.** `.github/workflows/security-migrations.yml` (`Security (migrations)`)
+   runs on PRs touching `supabase/migrations/**` and is a required check for
+   merge to `main`. It runs the real Supabase stack (`supabase start` +
+   `db reset`), then `scripts/ci/assert-anon-surface.sql` (execute-surface == six
+   RPCs; zero anon/public relation grants; RLS on every base table — each failing
+   and naming the offender) and `scripts/ci/postgrest-smoke.sh` (six RPCs
+   reachable; `refresh_derived` + five views denied, over the wire with the anon
+   key). Both scripts were exercised locally: they pass on the fixed schema and
+   fail (naming the object) when a grant/RLS leak is injected. Covers the
+   `pg_default_acl` (BLOCKER-2) class PGlite can't reproduce.
+
+   **Merge process for migration PRs, as of Phase 4:** BOTH (a) this automated
+   security job as a required check AND (b) the human-run adversarial gate review
+   in a fresh session. The automated job backstops the specific class the gate
+   review cannot reliably catch by eye (Supabase-provisioning ACL leaks); it does
+   **not** replace the gate review. CI runner is Linux (ubuntu-latest); it applies
+   CLAUDE.md's `-x` exclusion list for parity — safe on Linux, and db + gateway +
+   PostgREST still start (documented in the workflow and ARCHITECTURE.md "CI").
 
 ### Phase 3 (post-gate follow-ups, tagged by phase)
 
