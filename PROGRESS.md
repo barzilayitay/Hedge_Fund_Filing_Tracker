@@ -12,7 +12,7 @@ Human: read it before every gate review.
 | 1 — 13F ingestion | AWAITING GATE | phase-1 | — |
 | 2 — Analytics | AWAITING GATE | phase-2 | PASS 2026-07-18 |
 | 3 — Form 4 ingestion | AWAITING GATE | phase-3 | PASS 2026-07-19 |
-| 4 — API | NOT STARTED | — | — |
+| 4 — API | AWAITING GATE | phase-4 | FAIL 2026-07-24 → **PASS (re-review) 2026-07-25** |
 | 5 — Frontend | NOT STARTED | — | — |
 | 6 — Ops / scheduling | NOT STARTED | — | — |
 | 7 — Deploy | NOT STARTED | — | — |
@@ -20,6 +20,126 @@ Human: read it before every gate review.
 Statuses: NOT STARTED / IN PROGRESS / BLOCKED / AWAITING GATE / DONE
 
 ## Current phase notes
+
+### Phase 4 — API layer
+
+**Delivered:**
+1. **Migration** `supabase/migrations/20260722120000_api.sql`:
+   - Six read-only `security definer` RPCs, each returning a single `jsonb`
+     value: `get_fund_holdings` (server-side sort/filter/paginate with a
+     whitelisted `ORDER BY` + `total_count`), `get_fund_summary` (summary row +
+     available quarters), `get_fund_realtime` (10%-owner-fund Form 4 feed),
+     `get_stock_institutional` (funds holding a ticker + position change),
+     `get_stock_insiders` (Form 4 rows + sentiment + active-cluster flag),
+     `get_confluence` (per-quarter net institutional Δshares + insider P/S
+     transactions).
+   - **Security model (hardened after gate review #1 — see below):** conditional
+     `create role anon`; RLS enabled on every base table (catalog-driven);
+     **all** table/view/matview privileges revoked from anon+public and default
+     privileges altered so future objects are not auto-granted; EXECUTE revoked
+     from public on all functions (and explicitly from `refresh_derived`/
+     `set_updated_at`), then granted back on only the six RPCs. **The five direct
+     view grants were removed.** anon reaches data through the six RPCs and
+     nothing else. Verified on PGlite and real Supabase Postgres.
+   - Three functions carry `#variable_conflict use_column` (params `ticker` /
+     `fund_slug` share names with columns; params reached via qualified
+     `get_fn.param`).
+2. **Typed client** `lib/api.ts`: one function per RPC over the `Sql` port,
+   each zod-parsing the returned jsonb (the schema is the contract). Percentages
+   passed through 0..100 untouched (Phase 2 Decision 4). The zod contracts live
+   in `lib/schemasApi.ts` (split out at gate #2 to keep both files under the
+   ~300-line rule) and are re-exported from `lib/api.ts`, so consumers still
+   import everything from `@/lib/api`.
+3. **Export** `lib/export.ts` (`buildHoldingsExport` + `holdingsToDelimited`,
+   RFC-4180 quoting, UI-named headers) and the thin route
+   `app/api/export/route.ts?fund=&quarter=&format=csv|tsv`.
+4. **Seed script** `scripts/seed-dev.ts` (`npm run seed`): loads every committed
+   fixture (13F + Form 4 + prices + companyfacts + securities) through the
+   existing loaders against a production `Sql`, then `refresh_derived()`.
+5. **Tests** `tests/phase4/` (helper `tests/helpers/phase4.ts`): `api.test.ts`
+   (shape/sort-ground-truth/pagination/search/invalid-sort+dir/page-size cap/
+   page-overflow clamp on all three paginated RPCs/filter-aware total_count/
+   empty per RPC), `export.test.ts` (CSV+TSV round-trip parse, row-count =
+   holdings + header, formula-injection neutralization), `route.test.ts`
+   (export-route param parsing/400 paths + seed-dev local-target guard, both
+   pure), `security.test.ts` (catalog-driven grant-surface snapshot over
+   anon/authenticated/PUBLIC × relkind r/v/m/S + RLS/search_path invariants +
+   anon and authenticated behavioral denial).
+   **49 Phase 4 tests** (20 at build time, 45 after gate #1, 49 after gate #2).
+
+**Gate review #1 — FAILED on security, now REMEDIATED on this branch.** The
+adversarial reviewer verified the anon surface live (psql + PostgREST) and found
+the *deployed* surface was wider than the *documented* one. Two blockers, both
+fixed; full detail in `specs/phase-4-api.md` "Gate review #1" and Decisions 8–10
+below.
+- **BLOCKER-1:** `refresh_derived()` was PUBLIC-executable (Postgres default) and
+  became anon-reachable when Phase 4 added the anon role → `POST /rpc/
+  refresh_derived` returned `HTTP 204` for anon, an unauthenticated matview-
+  rebuild / AccessExclusiveLock DoS. Fixed by revoking EXECUTE broadly and
+  granting back only the six RPCs.
+- **BLOCKER-2:** Supabase's `pg_default_acl` auto-granted `MAINTAIN` (+D/x/t)
+  to anon on all seven views; `REFRESH MATERIALIZED VIEW` confirmed working as
+  anon — a second DoS path. Fixed by `revoke all on all tables … from anon,
+  public` + altered default privileges.
+- **BLOCKER-3:** the five direct view grants (unused; bypassed the RPC's sort
+  whitelist / 500-row cap / slug-scoping / enabled enumeration) were removed.
+- **Root-cause coverage:** the old `security.test.ts` asked only "is this table
+  denied?", which cannot see *extra* surface. It is replaced by a catalog-driven
+  grant-surface snapshot that asserts the anon surface *equals* {six RPCs, zero
+  relations} and fails on any addition — this reproduces and catches BLOCKER-1
+  on PGlite. Plus smaller fixes: CSV formula-injection escaping, `page` bigint/
+  clamp, export-route `fund` validation, tightened `top_*` zod schemas, and the
+  seed-dev localhost guard.
+
+**Acceptance criteria verification:**
+- `npm run typecheck` ✅. `npm run lint` ✅. `npm run test` → **289 pass / 18
+  files** (240 inherited + 49 Phase 4). `npm run build` ✅ warning-free (route
+  emitted as dynamic).
+- Each RPC returns the documented shape (zod-parsed). Pagination: page 2 / size
+  10 = rows 11–20 of the sorted set (proven equal to a full-set slice). Sort by
+  market_value desc equals a raw `ORDER BY` ground truth. Invalid `sort_col`
+  rejects with `invalid sort_col` (SQLSTATE 22023), not a 500. Export CSV row
+  count = holdings + header and re-parses as valid CSV/TSV. Anon cannot SELECT
+  `holdings_13f` (and every other base table) directly — proven by test on
+  PGlite and re-verified on real Postgres.
+- **`npx supabase db reset` run this session (Docker up):** all five migrations
+  (`init`, `13f_schema`, `analytics`, `form4_schema`, `api`) apply cleanly on
+  real Supabase Postgres — the first real-Postgres application of the API
+  migration. anon security additionally verified live via psql (EXECUTE on all
+  six RPCs granted; direct `holdings_13f` read denied).
+
+**Gate review #2 (re-review) — PASS (2026-07-25).** The reviewer re-derived the
+entire anon surface live rather than trusting the remediation, and **confirmed
+both original blockers closed**: anon's EXECUTE surface is exactly the six RPCs
+(`refresh_derived`/`set_updated_at` show `{postgres=X/postgres}`;
+`POST /rpc/refresh_derived` → 401/42501, was 204), and `aclexplode` over every
+relation in `public` returns zero rows for anon/PUBLIC — `REFRESH MATERIALIZED
+VIEW` and `TRUNCATE` as anon are denied. All five checks green. The
+grant-surface test was itself validated by injecting four regressions and
+watching each fail with the offender named. Eight further findings were raised;
+**all are fixed on this branch** (detail in `specs/phase-4-api.md` "Gate review
+#2" and Decisions 11–14 below):
+
+- `authenticated` still held D/x/t/m (TRUNCATE + MAINTAIN/REFRESH) on all 17
+  relations — BLOCKER-2's primitive one role over, proven live. Now revoked, and
+  both detective controls sweep it.
+- `alter default privileges … revoke execute on functions` proven a **no-op**;
+  the false claim is corrected everywhere and replaced with the real rule.
+- Sequences (relkind `S`) were outside the hardening — anon could `nextval()` a
+  newly created sequence. Now covered by the revoke and both controls.
+- `postgrest-smoke.sh` had a proven false negative (PostgREST maps every 42501
+  to 401, so a re-granted `refresh_derived` still read as "denied"). Denial
+  assertions now require the error to name the object; 404 no longer counts.
+- The `page` clamp had landed on only `get_fund_holdings`;
+  `get_stock_institutional`/`get_stock_insiders` still raised SQLSTATE 22003 to
+  anon. Fixed, with a test across all three.
+- The workflow's `paths:` filter made it impossible to require without hanging
+  every non-migration PR. It now always triggers and skips internally.
+- Doc drift (test count, the removed five-view-grant model, "CI job not yet
+  built") corrected; `lib/api.ts` split into `lib/api.ts` + `lib/schemasApi.ts`.
+
+None of the eight was a blocker: no anon-reachable data, no anon-reachable write
+or DoS primitive, no injection path, no secrets.
 
 ### Phase 3 — Form 4 ingestion
 
@@ -328,6 +448,124 @@ semantics under test are the same SQL that ships to Supabase.
 
 ## Decisions
 
+### Phase 4
+
+1. **RPCs return a single `jsonb` value**, not a `setof`. One call carries both
+   `rows` and `total_count`/summary; the wire shape is an explicit zod contract;
+   it is stable against later view-column additions. *Rejected:* `setof` rows
+   with a window `count(*) over()` (awkward for empty results and mixes the
+   total into every row).
+
+2. **`lib/api.ts` uses the `Sql` port, not `@supabase/supabase-js`** (confirmed
+   with the human before coding). Consistent with Phase 1 Decision 6, and every
+   RPC is unit-testable on PGlite. A supabase-js adapter is deferred to Phase 5
+   when the browser transport is needed; the zod contracts are
+   transport-independent. `@supabase/supabase-js` was not re-added.
+
+3. **Acceptance tests run on PGlite; `supabase db reset` is the real-Postgres
+   check.** The spec header says "run against local Supabase", but CLAUDE.md's
+   binding rule is "the test suite needs no Docker" and all prior phases test on
+   embedded Postgres. The anon RLS test uses `SET ROLE anon` on the PGlite
+   connection. This session also ran `db reset` (Docker up) and verified the
+   anon model on real Supabase Postgres. *Deviation from the literal spec
+   wording, recorded here and in the spec As-built notes.*
+
+4. **`anon` role created conditionally in the migration** (`if not exists`) so
+   the same DDL runs on both Supabase (role pre-exists) and PGlite (role
+   absent). RLS is enabled on every base table with anon/public privileges
+   revoked; anon reaches data only through the six `security definer` RPCs and
+   `select` on five derived views. The migration role owns tables and functions,
+   so definer functions and views bypass RLS; superuser/owner sessions (loaders,
+   tests) bypass RLS as before.
+
+5. **Sort injection is prevented by a hard whitelist**, not identifier quoting
+   alone. `get_fund_holdings` checks `sort_col` against an allow-list and
+   `sort_dir` against `{asc,desc}` before interpolation (`%I`/validated literal);
+   all data values go through `EXECUTE ... USING`. An unknown `sort_col` raises
+   SQLSTATE 22023 → a rejected promise, not a 500.
+
+6. **`filings.cik → filers` trigger guard stays Phase 6** (confirmed with the
+   human). The Phase 4 pull-forward condition was "if Phase 4 introduces the
+   production Sql path"; it does not — the API is read-only and
+   `scripts/prod-sql.ts` is unchanged (`seed-dev` only reuses it locally). See
+   open question 2 below (still tagged Phase 6).
+
+7. **`prod-sql.ts` `pg` specifier assembled at runtime** (`["p","g"].join("")`)
+   so neither tsc nor Turbopack resolves the optional, uninstalled dependency
+   when it traces the new export route. Keeps `npm run build` warning-free while
+   `pg` stays uncommitted.
+
+8. **[Gate #1] anon surface is defined by revoke-then-grant, not per-object
+   revokes.** Decisions 4–5 above describe the *original* model, which the gate
+   review broke. The migration now: (a) enables RLS catalog-driven; (b) `revoke
+   all on all tables in schema public from anon, public` (covers relkind r/v/m,
+   closing the Supabase `pg_default_acl` MAINTAIN leak on views); (c) `alter
+   default privileges … revoke` for tables and functions so later objects are
+   not auto-granted; (d) `revoke execute on all functions in schema public from
+   public` + explicit revokes of `refresh_derived`/`set_updated_at`, then grants
+   EXECUTE on only the six RPCs. **The five direct view grants were removed**
+   (they bypassed the RPC controls and had no consumer). *Rejected:* keeping the
+   view grants behind a `db-max-rows` cap (still leaves arbitrary sort/filter and
+   enumeration; no consumer justifies the surface).
+
+9. **[Gate #1] The security test asserts the surface, not denials.** A
+   denial-only test cannot detect *extra* surface, which is how BLOCKER-1/2
+   shipped. `security.test.ts` enumerates from `pg_proc`/`pg_class` and asserts
+   the anon-executable functions equal exactly the six RPCs and that no relation
+   is anon-reachable, plus RLS-on-every-table and search_path-on-every-definer
+   invariants. All catalog-driven (also retires the hardcoded 10-table list).
+   BLOCKER-1's PUBLIC-execute default is standard Postgres, so it reproduces and
+   is caught on PGlite in CI. **This test spans phases (BLOCKER-1 originated in
+   Phase 2) and must not be deleted as redundant.**
+
+10. **[Gate #1] `page` clamped + `bigint` offset; `page_size` cap unchanged at
+    500.** An anon-controlled `page` could overflow int4 in `(page-1)*page_size`
+    (SQLSTATE 22003 + context leak). `v_offset` is now `bigint` and `page` is
+    clamped to 1,000,000 — **in all three paginated RPCs as of gate #2**; gate #1
+    applied it only to `get_fund_holdings`. CSV export neutralizes formula-prefix
+    cells; the export route validates `fund` as a slug. All small, all tested.
+
+11. **[Gate #2] The anon/authenticated surface is defined against BOTH PostgREST
+    roles, not just anon.** Supabase's `pg_default_acl` grants `D/x/t/m` to
+    `anon` *and* `authenticated`; gate #1 revoked only from anon, leaving
+    authenticated able to `TRUNCATE` any base table (RLS does not gate TRUNCATE)
+    and `REFRESH MATERIALIZED VIEW`. The migration now creates `authenticated`
+    conditionally — purely so it can be named in the revokes — and revokes from
+    `anon, authenticated, public`. Sequences (relkind `S`) get the same
+    treatment, since they are a separate default-ACL object class that the
+    table-level revoke does not reach. *Rejected:* also revoking from
+    `service_role`, which is the trusted server-side role and is out of scope
+    for the public attack surface.
+
+12. **[Gate #2] `alter default privileges … revoke execute on functions` is
+    documented as a NO-OP, not as protection.** Measured on Supabase Postgres
+    17.6: a function created after the migration lands with `proacl = NULL` and
+    anon can execute it, because Supabase's recorded default ACL contains no
+    PUBLIC entry to revoke and Postgres re-applies its hard-wired
+    `EXECUTE TO PUBLIC`. The line is kept (harmless; it does strip the
+    anon/authenticated half) but every doc now states the real rule: a migration
+    adding a function must carry an explicit
+    `revoke execute … from public, anon, authenticated`, and
+    `tests/phase4/security.test.ts` is the enforcement. *Rejected:* deleting the
+    line (it still does useful work) and inventing a trigger-based guard
+    (over-engineering for something a green-on-every-PR test already catches).
+
+13. **[Gate #2] Wire-level denial assertions must name the object.** PostgREST
+    maps every SQLSTATE 42501 to HTTP 401, so a status-only assertion cannot tell
+    "anon was refused EXECUTE" from "anon executed it and it failed deeper" — a
+    re-granted `refresh_derived` read as `denied (401)` and the check exited 0.
+    `postgrest-smoke.sh` now requires the 42501 message to name the object under
+    test and rejects 404 as proof of denial. `assert-anon-surface.sql` remains
+    the authoritative control; the wire check corroborates it.
+
+14. **[Gate #2] `Security (migrations)` triggers on every PR and skips
+    internally.** GitHub has no conditional required checks: a `paths:`-filtered
+    workflow never reports on other PRs, so requiring it would leave every
+    non-migration PR waiting on a status that never arrives. The job now runs on
+    all PRs, diffs against the merge base, and no-ops with a passing exit when
+    `supabase/migrations/**` is untouched. *Rejected:* keeping the path filter
+    and requiring the `CI` job only (leaves the schema gate unenforceable).
+
 ### Phase 3
 
 1. **Dropped `filings_cik_fkey` (filings.cik → filers.cik).** The shared
@@ -552,6 +790,87 @@ semantics under test are the same SQL that ships to Supabase.
 
 ## Open questions for the human
 
+### ACTION REQUIRED (human) — enable branch protection on `main`
+
+**Status: OPEN. Nobody but you can do this; it is a repo-settings change.**
+
+`main` currently has **no branch protection at all** (`GET /repos/…/branches/
+main/protection` → 404 "Branch not protected"). CLAUDE.md hard rule 3 and
+ARCHITECTURE.md previously described `Security (migrations)` as "a required
+check"; that was false, and both documents have been corrected to say the job is
+advisory until this is done. Found at gate review #2.
+
+Please, in GitHub → Settings → Branches → add a rule for `main`:
+- Require a pull request before merging.
+- Require status checks to pass, and mark **both** contexts required:
+  - `anon-surface` (the job in `Security (migrations)`)
+  - `check` (the job in `CI`)
+
+The `Security (migrations)` workflow was reshaped at gate #2 precisely so it is
+safe to require: it triggers on every PR and no-ops with a passing exit when the
+PR does not touch `supabase/migrations/**`, so it cannot leave a non-migration PR
+hanging on a status that never arrives. Do not re-add a `paths:` filter to it —
+that is what makes it un-requirable.
+
+Until this rule exists, treat a red or missing `Security (migrations)` as
+blocking by convention, and do not describe it anywhere as enforced.
+
+### Phase 4 (gate review #1 FAILED on security; re-review 2026-07-25 PASSED)
+
+1. **RPCs return `jsonb`, transport is the `Sql` port** (Decisions 1–2, both
+   pre-confirmed). Confirm this is the intended API contract before Phase 5
+   builds the frontend on `lib/api.ts`. Phase 5 will decide whether server
+   components call these via a `pg`-backed `Sql` or a new supabase-js `.rpc()`
+   adapter over the same zod schemas.
+
+2. **[RESOLVED at gate #1] Tests run on PGlite, not live Supabase** (Decision 3).
+   Ratified as the standing strategy — **but only alongside the catalog-driven
+   grant-surface snapshot test** (Decision 9). Denial-only tests are insufficient:
+   they cannot see extra surface, which is precisely how BLOCKER-1/2 shipped. The
+   snapshot test now asserts the anon surface *equals* the intended set. Note it
+   does NOT cover BLOCKER-2's Supabase-specific `pg_default_acl` (PGlite has no
+   such default ACL) — that is covered by the Docker-gated migration job, which
+   is built and has run green on PR #5 (item 5 below).
+
+3. **[RESOLVED at gate #1] anon surface corrected.** The original grant set
+   (execute on six RPCs + select on five views) was wrong on both counts: an
+   extra PUBLIC-executable helper (`refresh_derived`) was reachable, and the
+   views carried `MAINTAIN`/etc via the Supabase default ACL. Now: EXECUTE on
+   exactly the six RPCs, nothing on any relation, RLS on every base table.
+   Verified live (psql execute-surface + `relacl` on views) after `db reset`.
+
+4. **Export route now has param-parsing coverage** (`route.test.ts`) but its
+   DB-touching path still needs `pg` + `DATABASE_URL` (uncommitted `pg`, Phase 6
+   debt). It builds and is warning-free. It **buffers the whole body in memory**
+   (no streaming) and has no auth/rate-limit — tagged for Phase 6 hardening.
+
+5. **[DONE — built and VERIFIED IN REAL CI] Docker-gated CI job for
+   Supabase-only ACL checks.** `.github/workflows/security-migrations.yml`
+   (`Security (migrations)`) runs the real Supabase stack (`supabase start` +
+   `db reset`), then `scripts/ci/assert-anon-surface.sql` (execute-surface == six
+   RPCs; zero anon/authenticated/public grants on any r/v/m/S relation; RLS on
+   every base table — each failing and naming the offender) and
+   `scripts/ci/postgrest-smoke.sh` (six RPCs reachable; `refresh_derived` + every
+   derived view denied by an error naming the object, over the wire with the anon
+   key). Covers the `pg_default_acl` (BLOCKER-2) class PGlite can't reproduce.
+
+   **It has run for real, green, on this PR:** run `30130999004` on PR #5
+   (2026-07-24, 2m50s) — every step executed (`Start Supabase`, `db reset`,
+   `Assert anon surface`, `PostgREST smoke`) and the logs show the assertions
+   firing. Gate #2 confirmed this; nothing about the job remains unproven. Both
+   scripts were additionally exercised locally against injected leaks and fail,
+   naming the object, on each deviation class.
+
+   **Merge process for migration PRs, as of Phase 4:** BOTH (a) this automated
+   security job AND (b) the human-run adversarial gate review in a fresh session.
+   The automated job backstops the specific class the gate review cannot reliably
+   catch by eye (Supabase-provisioning ACL leaks); it does **not** replace the
+   gate review. It is **not yet enforced by branch protection** — see "ACTION
+   REQUIRED (human)" at the top of this section. CI runner is Linux
+   (ubuntu-latest); it applies CLAUDE.md's `-x` exclusion list for parity — safe
+   on Linux, and db + gateway + PostgREST still start (documented in the workflow
+   and ARCHITECTURE.md "CI").
+
 ### Phase 3 (post-gate follow-ups, tagged by phase)
 
 Gate review PASSED 2026-07-19. The GATE is cleared (`fb3dd69` pinned real
@@ -567,10 +886,13 @@ accepted, non-blocking follow-ups carried forward to the phase that owns them.
    period_of_report)` and mark the original `is_superseded`, mirroring the
    Phase 1 `reconcilePeriod` pattern.
 
-2. **[→ Phase 4/6] `filings.cik → filers.cik` FK was dropped** (Decision 1) to
+2. **[→ Phase 6] `filings.cik → filers.cik` FK was dropped** (Decision 1) to
    let Form 4 rows share `filings`. Integrity for 13F rows is loader-enforced
    only. Follow-up: add a trigger-based guard for `form_type LIKE '13F-HR%'`
-   rows when the production `Sql` path lands.
+   rows when the production `Sql` path lands. **Phase 4 evaluated and deferred
+   this** (Phase 4 Decision 6): Phase 4 is a read-only API and did not introduce
+   a production write `Sql` path (`scripts/prod-sql.ts` is unchanged), so the
+   pull-forward condition was not met. Remains a Phase 6 item.
 
 3. **[→ revisit when a real fixture exists] Joint P/S multi-count.** Joint
    filings fan out to one row per owner×transaction; a joint P/S filing would
@@ -699,6 +1021,20 @@ accepted, non-blocking follow-ups carried forward to the phase that owns them.
   regenerates them (network) but doing so will move the numbers and invalidate
   `berkshire.diff.expected.json` — treat it like the 13F fixtures: pinned, not
   re-run casually.
+- **`tests/phase4/api.test.ts` is 362 lines, over CLAUDE.md's ~300-line rule —
+  accepted exception.** It is one `describe` per RPC plus the cross-RPC
+  pagination-overflow block; splitting it would scatter the Phase 4 acceptance
+  criteria across files for no readability gain. (The rule was applied where it
+  did help: `lib/api.ts` went 347 → 142 by moving the zod contracts into
+  `lib/schemasApi.ts` at gate #2.) Existing precedent: `lib/edgar/parseForm4.ts`
+  is 406 lines and `parse13f.ts` 311.
+- **Every new function in schema `public` is PUBLIC-executable on creation, and
+  `alter default privileges … revoke execute on functions` does NOT prevent it**
+  (measured on Supabase PG 17.6 at gate #2 — Phase 4 Decision 12). Any migration
+  adding a function must carry an explicit
+  `revoke execute on function <name>(...) from public, anon, authenticated;`
+  unless it is a deliberate new anon RPC. `tests/phase4/security.test.ts` fails
+  the build if this is forgotten, so the failure mode is loud, not silent.
 - **Do not call user-defined functions from a materialized view's defining
   query** while the test suite runs on PGlite — PGlite cannot resolve relations
   referenced from a function invoked during matview population (Phase 2

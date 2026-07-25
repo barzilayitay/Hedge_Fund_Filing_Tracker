@@ -1,0 +1,99 @@
+name: Security (migrations)
+
+# Docker-gated security gate for schema changes. Runs the real Supabase stack
+# (Postgres + PostgREST) and asserts the anon attack surface, which the
+# Docker-free `npm run test` PGlite suite cannot fully cover: PGlite does not
+# reproduce Supabase provisioning artifacts such as pg_default_acl, so a
+# grant leak that only appears on real Supabase is invisible there.
+# Origin: Phase 4 gate review #1 (BLOCKER-1/2). See ARCHITECTURE.md "CI".
+#
+# WHY THIS TRIGGERS ON EVERY PR BUT ONLY WORKS ON MIGRATION PRs:
+# GitHub has no conditional required checks. A workflow filtered with
+# `paths: supabase/migrations/**` simply never reports on other PRs, so marking
+# it required in branch protection would leave every non-migration PR blocked on
+# a status that can never arrive. The standard fix, used here: trigger on all
+# PRs, detect whether supabase/migrations/** actually changed, and skip the
+# expensive steps with a passing exit when it did not. The check is then green
+# on every PR and does real work exactly when a migration is touched — safe to
+# mark as a required check.
+#
+# CI runner note (reconciled with CLAUDE.md): CLAUDE.md's Supabase invocation is
+# written for the Windows dev box, where studio/storage-api/postgres-meta/etc.
+# fail health checks and must be excluded. GitHub's runner is Linux
+# (ubuntu-latest); the same `-x` exclusion list is applied here for parity and
+# speed. It is safe on Linux and, critically, still starts db + gateway +
+# PostgREST, which both checks below require.
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  # The job name is the status-check context used by branch protection.
+  # Do not rename it without updating the protection rule.
+  anon-surface:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so the merge-base diff below can see the whole PR.
+          fetch-depth: 0
+
+      - name: Does this PR touch supabase/migrations/**?
+        id: scope
+        run: |
+          set -euo pipefail
+          base="${{ github.base_ref }}"
+          git fetch --no-tags --prune origin "+refs/heads/$base:refs/remotes/origin/$base"
+          merge_base=$(git merge-base "origin/$base" HEAD)
+          changed=$(git diff --name-only "$merge_base" HEAD)
+          echo "Changed files:"; echo "$changed"
+          if echo "$changed" | grep -q '^supabase/migrations/'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: No migration changes — skipping the Supabase stack
+        if: steps.scope.outputs.run != 'true'
+        run: |
+          echo "This PR does not touch supabase/migrations/**."
+          echo "The anon-surface assertions apply to schema changes only; nothing to check."
+          echo "Reporting success so this check can be a required check on every PR."
+
+      - uses: actions/setup-node@v4
+        if: steps.scope.outputs.run == 'true'
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+        if: steps.scope.outputs.run == 'true'
+
+      # Bring up the real stack. Same exclusions as CLAUDE.md's local command.
+      - name: Start Supabase (real Postgres + PostgREST)
+        if: steps.scope.outputs.run == 'true'
+        run: npx supabase start -x studio,storage-api,postgres-meta,imgproxy,logflare,vector,mailpit
+
+      - name: Apply all migrations (db reset)
+        if: steps.scope.outputs.run == 'true'
+        run: npx supabase db reset
+
+      # (i) execute-surface == six RPCs, (ii) no anon/authenticated/public
+      # relation grants (r/v/m/S), (iii) RLS on every base table. psql exits
+      # non-zero (naming the offending object) on any deviation.
+      - name: Assert anon surface (psql state checks)
+        if: steps.scope.outputs.run == 'true'
+        run: |
+          DB_URL=$(npx supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')
+          if [ -z "$DB_URL" ]; then echo "could not read DB_URL"; exit 1; fi
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f scripts/ci/assert-anon-surface.sql
+
+      # Over-the-wire reachability with the anon key: six RPCs 200;
+      # refresh_derived and the views denied, each by an error naming itself.
+      - name: PostgREST smoke (anon key)
+        if: steps.scope.outputs.run == 'true'
+        run: bash scripts/ci/postgrest-smoke.sh
+
+      - name: Stop Supabase
+        if: always() && steps.scope.outputs.run == 'true'
+        run: npx supabase stop

@@ -34,8 +34,11 @@ export async function makeProductionSql(): Promise<{ sql: Sql; close: () => Prom
     );
   }
 
-  // Variable specifier so tsc does not try to resolve the optional dependency.
-  const spec = "pg";
+  // Assemble the specifier at runtime so neither tsc nor the Next/Turbopack
+  // bundler resolves this optional, uninstalled dependency at build time (the
+  // /api/export route pulls this module into its graph). `pg` is required
+  // dynamically only when actually present (PROGRESS.md: not a committed dep).
+  const spec = ["p", "g"].join("");
   let pg: PgModule;
   try {
     pg = (await import(spec)) as unknown as PgModule;

@@ -62,6 +62,54 @@ Derived (views / matviews, refreshed after ingest):
 - Fair access: User-Agent with contact email on every request; ≤8 req/s;
   exponential backoff on 429/403.
 
+## CI
+
+Two workflows gate merges to `main`:
+
+- **`CI`** (`.github/workflows/ci.yml`) — runs on every PR: typecheck, lint, the
+  full `npm run test` suite, and `build`. Docker-free; the acceptance tests run
+  the real migrations against embedded Postgres (PGlite).
+
+- **`Security (migrations)`** (`.github/workflows/security-migrations.yml`) —
+  triggers on **every** PR to `main`, but does its real work only when the PR
+  actually changed `supabase/migrations/**`; otherwise it reports success after
+  a one-step no-op. It brings up the real Supabase stack (Postgres + PostgREST)
+  via `supabase start` + `supabase db reset`, then asserts the anon attack
+  surface both in the catalog (`scripts/ci/assert-anon-surface.sql`:
+  execute-surface == the six RPCs; zero anon/authenticated/public grants on any
+  relation of relkind r/v/m/S; RLS on every base table) and over the wire with
+  the anon key (`scripts/ci/postgrest-smoke.sh`: the six RPCs reachable;
+  `refresh_derived` and every derived view denied — and denied by an error that
+  names the object itself, so a reintroduced `refresh_derived` grant is caught
+  even when the deeper matview privilege is still correctly revoked).
+
+  **Why it triggers on every PR instead of using a `paths:` filter:** GitHub has
+  no conditional required checks. A path-filtered workflow never reports on
+  other PRs, so requiring it in branch protection would block every
+  non-migration PR on a status that never arrives. Triggering always and
+  skipping internally gives a check that is green on every PR and meaningful on
+  migration PRs.
+
+  **Why it must exist and must not be deleted as CI cruft:** PGlite cannot
+  reproduce Supabase provisioning artifacts — most importantly `pg_default_acl`,
+  which auto-grants privileges (including `MAINTAIN`, and `TRUNCATE`, which RLS
+  does not gate) to `anon` **and `authenticated`** on owner-created relations. A
+  grant leak that surfaces only on real Supabase is therefore invisible to the
+  standing PGlite security tests. This job is the backstop for that class.
+  Origin: **Phase 4 gate review #1** (BLOCKER-1/2), where exactly such a leak
+  shipped; widened to `authenticated` and sequences at gate review #2.
+
+  **Enforcement status:** the job exists and runs, and has passed on a real PR
+  (#5). It becomes a merge *blocker* only once branch protection on `main` marks
+  it a required check — a repo-settings action the human must take, tracked in
+  PROGRESS.md under "ACTION REQUIRED (human)". Until then it is advisory.
+
+  The job is a supplement, not a substitute: migration PRs still require the
+  human-run adversarial gate review in a fresh session (see PROGRESS.md). The
+  runner is Linux (ubuntu-latest); it applies the same `-x` service-exclusion
+  list as CLAUDE.md's Windows command, which is safe there and still starts db +
+  gateway + PostgREST.
+
 ## Key decisions
 
 1. **Supabase over self-hosted Postgres** — pg_cron + edge functions remove a

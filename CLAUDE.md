@@ -50,6 +50,26 @@ npx supabase db reset               # rebuild local db from migrations + seed
 3. **Schema changes only via migrations.** Never execute DDL directly
    against any database. Local: `supabase migration new` + `supabase db
    reset`. Remote: migrations are applied by CI/human, not by you.
+   Any PR touching `supabase/migrations/**` must pass the Docker-gated
+   **`Security (migrations)`** workflow AND a human-run adversarial gate review
+   before merge. That job exists because PGlite (the Docker-free test engine)
+   cannot reproduce Supabase provisioning artifacts like `pg_default_acl`, so
+   the standing PGlite security tests cannot catch a grant leak that only
+   appears on real Supabase — origin: Phase 4 gate review #1. Do not weaken or
+   delete it. See ARCHITECTURE.md "CI".
+   **Status:** the workflow runs on every PR and does its real work only when
+   `supabase/migrations/**` changed, so it is safe to require. It is **not yet
+   a required check** — branch protection on `main` is not enabled, which is a
+   repo-settings action only the human can take (tracked in PROGRESS.md under
+   "ACTION REQUIRED (human)"). Until that is done the job is advisory: treat a
+   red or missing result as blocking anyway, but do not describe it in docs or
+   commit messages as an enforced gate.
+   Also: any migration that adds a **function** must explicitly
+   `revoke execute on function <name>(...) from public, anon, authenticated;`
+   unless it is a deliberate new anon RPC. Postgres grants EXECUTE to PUBLIC on
+   every new function and `alter default privileges` does not prevent it (see
+   the note in `20260722120000_api.sql`); the catalog-driven grant-surface test
+   in `tests/phase4/security.test.ts` is what catches an omission.
 4. **Never touch production.** No commands against the production Supabase
    project or Vercel production environment unless the spec for the
    current phase explicitly says so (Phase 7 only).
