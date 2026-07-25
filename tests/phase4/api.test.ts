@@ -318,3 +318,45 @@ describe("get_confluence", () => {
     ).toBe(true);
   });
 });
+
+describe("pagination overflow safety (every paginated RPC)", () => {
+  /**
+   * Gate review #2: the page clamp + bigint offset shipped only in
+   * get_fund_holdings, so get_stock_institutional and get_stock_insiders still
+   * raised SQLSTATE 22003 ("integer out of range") on a caller-controlled page
+   * — reachable by anon over PostgREST as a bare HTTP 400. All three now clamp
+   * and compute the offset in bigint, so a huge page is a clean empty page
+   * rather than an error. INT4_MAX is the worst case a client can send through
+   * PostgREST's integer coercion.
+   */
+  const HUGE_PAGE = 2147483647;
+
+  it("get_fund_holdings clamps instead of overflowing", async () => {
+    const res = await getFundHoldings(db.sql, {
+      fundSlug: brkSlug,
+      quarter: BRK_CURRENT_QUARTER,
+      page: HUGE_PAGE,
+      pageSize: 500,
+    });
+    expect(res.total_count).toBeGreaterThan(0);
+    expect(res.rows).toEqual([]);
+  });
+
+  it("get_stock_institutional clamps instead of overflowing", async () => {
+    const res = await getStockInstitutional(
+      db.sql,
+      "AAPL",
+      BRK_CURRENT_QUARTER,
+      HUGE_PAGE,
+      500,
+    );
+    expect(res.total_count).toBeGreaterThan(0);
+    expect(res.rows).toEqual([]);
+  });
+
+  it("get_stock_insiders clamps instead of overflowing", async () => {
+    const res = await getStockInsiders(db.sql, "AAPL", HUGE_PAGE, 500);
+    expect(res.total_count).toBeGreaterThan(0);
+    expect(res.rows).toEqual([]);
+  });
+});

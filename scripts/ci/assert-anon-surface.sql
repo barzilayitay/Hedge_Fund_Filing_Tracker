@@ -5,10 +5,11 @@
 --
 -- WHY this runs on real Supabase and not in the PGlite suite: PGlite cannot
 -- reproduce Supabase provisioning artifacts — notably pg_default_acl, which
--- auto-grants privileges (incl. MAINTAIN) to anon on owner-created relations.
--- A view-grant leak that only appears on real Supabase is therefore invisible
--- to the standing PGlite security tests. Origin: Phase 4 gate review #1
--- (BLOCKER-2). Do not delete this as CI cruft — see ARCHITECTURE.md "CI".
+-- auto-grants privileges (incl. MAINTAIN) to anon and authenticated on
+-- owner-created relations. A grant leak that only appears on real Supabase is
+-- therefore invisible to the standing PGlite security tests. Origin: Phase 4
+-- gate review #1 (BLOCKER-2), widened to authenticated + sequences at gate
+-- review #2. Do not delete this as CI cruft — see ARCHITECTURE.md "CI".
 
 \echo '== check (i): anon EXECUTE surface == exactly the six intended RPCs =='
 do $$
@@ -50,7 +51,14 @@ begin
 end
 $$;
 
-\echo '== check (ii): zero anon/public grants on any table/view/matview =='
+\echo '== check (ii): zero anon/authenticated/public grants on any relation =='
+-- Covers relkind r (table), v (view), m (matview) and S (sequence), and both
+-- PostgREST roles plus PUBLIC. `authenticated` and sequences were added at gate
+-- review #2: the Supabase default ACL hands authenticated the same D/x/t/m as
+-- anon (TRUNCATE, which RLS does not gate, and MAINTAIN → REFRESH MATERIALIZED
+-- VIEW), and sequences carry their own default ACL that the table-level revoke
+-- does not reach. Neither is reproducible on PGlite, so this is their only
+-- real-Supabase check.
 do $$
 declare
   bad text;
@@ -60,7 +68,8 @@ begin
                   c.relname,
                   case c.relkind when 'r' then 'table'
                                  when 'v' then 'view'
-                                 when 'm' then 'matview' end,
+                                 when 'm' then 'matview'
+                                 when 'S' then 'sequence' end,
                   case when pr.grantee = 0 then 'PUBLIC'
                        else pr.grantee::regrole::text end || '/' || pr.privilege_type),
            ', ')
@@ -69,12 +78,12 @@ begin
     join pg_namespace n on n.oid = c.relnamespace
     cross join lateral aclexplode(c.relacl) pr
    where n.nspname = 'public'
-     and c.relkind in ('r', 'v', 'm')
-     and pr.grantee in (0, 'anon'::regrole);
+     and c.relkind in ('r', 'v', 'm', 'S')
+     and pr.grantee in (0, 'anon'::regrole, 'authenticated'::regrole);
   if bad is not null then
-    raise exception 'anon/public hold grant(s) on relation(s): %', bad;
+    raise exception 'anon/authenticated/public hold grant(s) on relation(s): %', bad;
   end if;
-  raise notice 'OK: no anon/public grant on any relation';
+  raise notice 'OK: no anon/authenticated/public grant on any relation';
 end
 $$;
 

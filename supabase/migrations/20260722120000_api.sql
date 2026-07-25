@@ -1,8 +1,8 @@
 -- Phase 4: read API layer.
 --
 -- Six read-only RPC functions over the Phase 2/3 derived data, plus the RLS +
--- grant model that lets the anon role reach the data ONLY through these
--- functions and a short list of derived views — never a base table.
+-- grant model that lets the anon role reach the data ONLY through these six
+-- functions — never a base table, a view, or anything else.
 --
 -- Design notes (see specs/phase-4-api.md and PROGRESS.md Phase 4 decisions):
 --   * Every RPC returns a single `jsonb` value. This makes the wire shape an
@@ -19,15 +19,24 @@
 --   * Percentages are already 0..100 (Phase 2 Decision 4); nothing here rescales.
 
 -- ---------------------------------------------------------------------------
--- anon role. On Supabase this role is pre-provisioned; create it conditionally
--- so the same migration also runs on a bare Postgres / PGlite (the test engine)
--- where it does not exist yet. nologin: it is assumed via the API gateway, not
--- connected to directly.
+-- PostgREST roles. On Supabase both are pre-provisioned; create them
+-- conditionally so the same migration also runs on a bare Postgres / PGlite
+-- (the test engine) where they do not exist. nologin: they are assumed via the
+-- API gateway, not connected to directly.
+--
+-- `authenticated` is created here only so the revokes below can name it. This
+-- phase has no auth (out of scope) and grants it nothing; it exists so the
+-- Supabase default ACL's D/x/t/m grant on every relation — TRUNCATE plus
+-- MAINTAIN, i.e. REFRESH MATERIALIZED VIEW — is stripped from it too, not just
+-- from anon. See the security section at the bottom of this file.
 -- ---------------------------------------------------------------------------
 do $$
 begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then
     create role anon nologin noinherit;
+  end if;
+  if not exists (select 1 from pg_roles where rolname = 'authenticated') then
+    create role authenticated nologin noinherit;
   end if;
 end
 $$;
@@ -264,14 +273,17 @@ stable
 set search_path = public, pg_temp
 as $$
 declare
-  v_offset integer;
+  v_offset bigint;
   v_total  integer;
   v_rows   jsonb;
 begin
   if page < 1 then page := 1; end if;
+  -- Same clamp + bigint offset as get_fund_holdings: a caller-controlled page
+  -- must not overflow int4 in (page-1)*page_size (SQLSTATE 22003).
+  if page > 1000000 then page := 1000000; end if;
   if page_size < 1 then page_size := 50; end if;
   if page_size > 500 then page_size := 500; end if;
-  v_offset := (page - 1) * page_size;
+  v_offset := (page::bigint - 1) * page_size;
 
   select count(*) into v_total
     from fund_holdings_enriched e
@@ -330,16 +342,19 @@ as $$
 #variable_conflict use_column
 declare
   v_cik       text;
-  v_offset    integer;
+  v_offset    bigint;
   v_total     integer;
   v_rows      jsonb;
   v_sentiment jsonb;
   v_cluster   boolean;
 begin
   if page < 1 then page := 1; end if;
+  -- Same clamp + bigint offset as get_fund_holdings: a caller-controlled page
+  -- must not overflow int4 in (page-1)*page_size (SQLSTATE 22003).
+  if page > 1000000 then page := 1000000; end if;
   if page_size < 1 then page_size := 50; end if;
   if page_size > 500 then page_size := 500; end if;
-  v_offset := (page - 1) * page_size;
+  v_offset := (page::bigint - 1) * page_size;
 
   select cik into v_cik
     from companies where ticker = get_stock_insiders.ticker
@@ -483,24 +498,44 @@ $$;
 --
 --   * Supabase ships a default ACL (pg_default_acl) that auto-grants
 --     D/x/t/m (TRUNCATE/TRIGGER/REFERENCES/MAINTAIN — MAINTAIN alone lets a
---     role REFRESH a matview) to anon on every relation the migration role
---     creates in `public`. A per-table `revoke` that only names base tables
---     leaves every VIEW and MATERIALIZED VIEW carrying those default grants.
---     We revoke ALL on ALL tables (relkind r, v AND m) from anon+public, and
---     `alter default privileges` so relations created LATER are not re-granted.
+--     role REFRESH a matview) to anon AND authenticated on every relation the
+--     migration role creates in `public`. A per-table `revoke` that only names
+--     base tables leaves every VIEW and MATERIALIZED VIEW carrying those
+--     default grants. We revoke ALL on ALL tables (relkind r, v AND m) and ALL
+--     sequences from anon, authenticated and public, and `alter default
+--     privileges` so relations created LATER are not re-granted.
 --
 --   * Postgres grants EXECUTE to PUBLIC on every new function by default. A
 --     helper from an earlier phase (refresh_derived, set_updated_at) was
 --     therefore PUBLIC-executable and became anon-reachable the moment the anon
 --     role was created here — an inert Phase 2 grant turned into a live
 --     unauthenticated write/DoS primitive. We revoke EXECUTE from PUBLIC on
---     every function first, alter default privileges for future functions, and
---     then grant EXECUTE back on exactly the six intended RPCs.
+--     every function first and then grant EXECUTE back on exactly the six
+--     intended RPCs.
+--
+-- WHAT PROTECTS A FUNCTION ADDED BY A LATER MIGRATION (read before trusting the
+-- `alter default privileges ... on functions` line below): NOT that line. It is
+-- a verified no-op on Supabase — the recorded default ACL contains no PUBLIC
+-- entry to revoke, so Postgres re-applies its hard-wired `EXECUTE TO PUBLIC`
+-- and a function created after this migration lands PUBLIC- and therefore
+-- anon-executable. Measured on Supabase Postgres 17.6 at Phase 4 gate review #2.
+-- The real protection is two things:
+--   (a) the explicit `revoke execute on function ... from public, anon,
+--       authenticated` that every migration adding a non-RPC function must
+--       carry (see CLAUDE.md hard rule 3), and
+--   (b) tests/phase4/security.test.ts, whose catalog-driven grant-surface
+--       snapshot fails on ANY anon-executable function outside the six RPCs.
+--       That test was proven to catch exactly this case (a newly created
+--       PUBLIC-executable helper) on PGlite.
+-- The line is kept because it is harmless and does close the anon/authenticated
+-- half of the default ACL, but it must not be described as the guard.
 --
 -- RLS is additionally enabled (no policies) on every base table so a leaked
 -- grant still yields zero rows. The migration role owns the tables and
--- functions and has BYPASSRLS, so the security-definer RPCs read on anon's
--- behalf; loader/test sessions run as the owner and are unaffected.
+-- functions, and table owners bypass RLS, so the security-definer RPCs read on
+-- anon's behalf; loader/test sessions run as the owner and are unaffected.
+-- Note RLS does NOT gate TRUNCATE — which is why the D (TRUNCATE) privilege has
+-- to be revoked rather than relied on being unreachable.
 -- ---------------------------------------------------------------------------
 
 -- 1. RLS on every base table, catalog-driven so a table added later is never
@@ -520,22 +555,31 @@ begin
 end
 $$;
 
--- 2. Revoke every privilege on every table/view/matview from anon and public.
---    "all tables" in Postgres covers relkind r, v and m, so this closes the
---    default-ACL leak on the views as well as the base tables.
-revoke all on all tables in schema public from anon, public;
+-- 2. Revoke every privilege on every table/view/matview from anon,
+--    authenticated and public. "all tables" in Postgres covers relkind r, v and
+--    m, so this closes the default-ACL leak on the views as well as the base
+--    tables. Sequences (relkind S) are a separate object class with their own
+--    default ACL — none exist in public today, but the revoke keeps the surface
+--    closed if a later migration adds an identity/serial column.
+revoke all on all tables in schema public from anon, authenticated, public;
+revoke all on all sequences in schema public from anon, authenticated, public;
 
--- 3. Stop objects created LATER in this schema from being auto-granted to
---    anon/public (both relations and functions).
-alter default privileges in schema public revoke all on tables from anon, public;
-alter default privileges in schema public revoke execute on functions from anon, public;
+-- 3. Stop RELATIONS created LATER in this schema from being auto-granted to
+--    anon/authenticated/public. This works (verified: a view/table/matview/
+--    sequence created after this migration carries no anon or authenticated
+--    entry in its ACL). The equivalent line for functions does NOT work — see
+--    the "WHAT PROTECTS A FUNCTION ADDED BY A LATER MIGRATION" note above.
+alter default privileges in schema public revoke all on tables from anon, authenticated, public;
+alter default privileges in schema public revoke all on sequences from anon, authenticated, public;
+alter default privileges in schema public revoke execute on functions from anon, authenticated, public;
 
--- 4. Revoke EXECUTE broadly, then grant it back on only the six RPCs. This is
---    what keeps refresh_derived()/set_updated_at() (and any future helper) off
---    the anon surface unless it is deliberately granted here.
+-- 4. Revoke EXECUTE broadly, then grant it back on only the six RPCs. Together
+--    with the explicit revokes below this is what keeps refresh_derived()/
+--    set_updated_at() off the anon surface; for functions added later it is the
+--    security.test.ts grant-surface snapshot that enforces the invariant.
 revoke execute on all functions in schema public from public;
-revoke execute on function refresh_derived() from public, anon;
-revoke execute on function set_updated_at() from public, anon;
+revoke execute on function refresh_derived() from public, anon, authenticated;
+revoke execute on function set_updated_at() from public, anon, authenticated;
 
 grant execute on function get_fund_holdings(text, date, text, text, integer, integer, text) to anon;
 grant execute on function get_fund_summary(text, date) to anon;

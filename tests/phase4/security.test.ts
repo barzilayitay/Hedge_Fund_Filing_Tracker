@@ -13,12 +13,17 @@ import { getFundHoldings } from "@/lib/api";
  * expected set, so any new anon-reachable function or relation fails the build.
  *
  *   - GRANT-SURFACE SNAPSHOT: exactly six functions are anon-executable, and no
- *     relation is anon-accessible by any privilege. This catches a
- *     PUBLIC-executable helper like refresh_derived() — Postgres grants EXECUTE
- *     to PUBLIC on every new function by default, so that leak reproduces on
- *     PGlite and is caught here in CI. (The Supabase-only pg_default_acl leak on
- *     views does NOT reproduce on PGlite; that one needs the Docker-gated
- *     migration job — see specs/phase-4-api.md.)
+ *     relation is reachable by anon, authenticated or PUBLIC under any
+ *     privilege. This catches a PUBLIC-executable helper like refresh_derived()
+ *     — Postgres grants EXECUTE to PUBLIC on every new function by default, so
+ *     that leak reproduces on PGlite and is caught here in CI. (The
+ *     Supabase-only pg_default_acl leak does NOT reproduce on PGlite; that one
+ *     needs the Docker-gated migration job — see specs/phase-4-api.md.)
+ *
+ *     `authenticated` and sequences are included in the relation sweep after
+ *     gate review #2, which found authenticated still holding D/x/t/m — TRUNCATE
+ *     plus MAINTAIN, i.e. REFRESH MATERIALIZED VIEW — on all 17 relations on
+ *     real Supabase, the same privilege set as BLOCKER-2 one role over.
  *   - INVARIANTS: every base table has RLS enabled; every security-definer
  *     function has a pinned search_path. Both are driven from the catalog, not a
  *     hardcoded list, so a table/function added later is covered automatically.
@@ -62,20 +67,34 @@ describe("anon grant-surface snapshot", () => {
     expect(rows.map((r) => r.proname)).toEqual(EXPECTED_ANON_FUNCTIONS);
   });
 
-  it("anon holds NO privilege on any table, view, or materialized view", async () => {
+  it("no PostgREST role holds any privilege on any relation in public", async () => {
     // aclexplode over relacl surfaces every grant of every privilege type
-    // (SELECT..TRIGGER and MAINTAIN alike) to anon (regrole) or PUBLIC
-    // (grantee 0). Expected: empty. This is what would have caught the removed
-    // direct view grants (BLOCKER-3) and, on real Supabase, the MAINTAIN leak.
-    const rows = await db.query<{ relname: string; privilege_type: string }>(
-      `select c.relname, pr.privilege_type
+    // (SELECT..TRIGGER and MAINTAIN alike) to anon, authenticated (regrole) or
+    // PUBLIC (grantee 0). Expected: empty. This is what would have caught the
+    // removed direct view grants (BLOCKER-3) and, on real Supabase, the
+    // MAINTAIN leak on anon (gate #1) and on authenticated (gate #2).
+    //
+    // relkind covers r (table), v (view), m (matview) and S (sequence). No
+    // sequence exists in public today; it is swept so that a later identity or
+    // serial column cannot quietly re-open the surface via the sequence default
+    // ACL, which is a separate object class from tables.
+    const rows = await db.query<{
+      relkind: string;
+      relname: string;
+      grantee: string;
+      privilege_type: string;
+    }>(
+      `select c.relkind, c.relname,
+              case when pr.grantee = 0 then 'PUBLIC'
+                   else pr.grantee::regrole::text end as grantee,
+              pr.privilege_type
          from pg_class c
          join pg_namespace n on n.oid = c.relnamespace
          cross join lateral aclexplode(c.relacl) pr
         where n.nspname = 'public'
-          and c.relkind in ('r', 'v', 'm')
-          and pr.grantee in (0, 'anon'::regrole)
-        order by c.relname, pr.privilege_type`,
+          and c.relkind in ('r', 'v', 'm', 'S')
+          and pr.grantee in (0, 'anon'::regrole, 'authenticated'::regrole)
+        order by c.relname, grantee, pr.privilege_type`,
     );
     expect(rows).toEqual([]);
   });
@@ -191,6 +210,32 @@ describe("anon behavioral denial (SET ROLE anon)", () => {
   it("anon cannot execute the un-granted helper functions", async () => {
     await db.query("set role anon");
     try {
+      await expect(db.query(`select refresh_derived()`)).rejects.toThrow(
+        /permission denied/i,
+      );
+    } finally {
+      await db.query("reset role");
+    }
+  });
+
+  // Gate review #2: `authenticated` retained the same D/x/t/m the default ACL
+  // hands out — TRUNCATE (which RLS does NOT gate) and MAINTAIN (REFRESH
+  // MATERIALIZED VIEW), i.e. BLOCKER-2's primitive one role over. PGlite has no
+  // Supabase default ACL, so this test cannot reproduce the leak; it pins the
+  // intended behaviour and the catalog sweep above plus the Docker-gated job
+  // (scripts/ci/assert-anon-surface.sql) are what detect it on real Supabase.
+  it("authenticated cannot read, TRUNCATE or REFRESH anything", async () => {
+    await db.query("set role authenticated");
+    try {
+      await expect(db.query(`select * from holdings_13f limit 1`)).rejects.toThrow(
+        /permission denied/i,
+      );
+      await expect(db.query(`truncate holdings_13f`)).rejects.toThrow(
+        /permission denied/i,
+      );
+      await expect(
+        db.query(`refresh materialized view fund_holdings_enriched`),
+      ).rejects.toThrow(/permission denied|must be owner/i);
       await expect(db.query(`select refresh_derived()`)).rejects.toThrow(
         /permission denied/i,
       );
