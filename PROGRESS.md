@@ -1021,6 +1021,13 @@ accepted, non-blocking follow-ups carried forward to the phase that owns them.
   regenerates them (network) but doing so will move the numbers and invalidate
   `berkshire.diff.expected.json` — treat it like the 13F fixtures: pinned, not
   re-run casually.
+- **`tests/phase4/api.test.ts` is 362 lines, over CLAUDE.md's ~300-line rule —
+  accepted exception.** It is one `describe` per RPC plus the cross-RPC
+  pagination-overflow block; splitting it would scatter the Phase 4 acceptance
+  criteria across files for no readability gain. (The rule was applied where it
+  did help: `lib/api.ts` went 347 → 142 by moving the zod contracts into
+  `lib/schemasApi.ts` at gate #2.) Existing precedent: `lib/edgar/parseForm4.ts`
+  is 406 lines and `parse13f.ts` 311.
 - **Every new function in schema `public` is PUBLIC-executable on creation, and
   `alter default privileges … revoke execute on functions` does NOT prevent it**
   (measured on Supabase PG 17.6 at gate #2 — Phase 4 Decision 12). Any migration
